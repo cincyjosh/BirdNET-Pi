@@ -33,7 +33,7 @@ $todayspeciestally = $summary['speciestally'];
 $totalspeciestally = $summary['totalspeciestally'];
 
 if(isset($_GET['comname'])) {
- $birdName = htmlspecialchars_decode($_GET['comname'], ENT_QUOTES);
+ $birdName = $_GET['comname'];
 
 // Set default days to 30 if not provided
 $days = isset($_GET['days']) ? intval($_GET['days']) : 30;

@@ -269,13 +269,23 @@ if (get_included_files()[0] === __FILE__) {
     return shorter;
   }
 
+  function safeUrl(url) {
+    try {
+      const p = new URL(url);
+      return (p.protocol === 'https:' || p.protocol === 'http:') ? url : '#';
+    } catch(e) { return '#'; }
+  }
   function setModalText(iter, title, text, authorlink, photolink, licenseurl) {
-    let text_display = shorten(text);
-    let authorlink_display = shorten(authorlink);
-    let licenseurl_display = shorten(licenseurl);
-    document.getElementById('modalHeading').innerHTML = "Photo: \""+decodeURIComponent(title.replaceAll("+"," "))+"\" Attribution";
-    document.getElementById('modalText').innerHTML = "<div><img style='border-radius:5px;max-height: calc(100vh - 15rem);display: block;margin: 0 auto;' src='"+photolink+"'></div><br><div style='white-space:nowrap'>Image link: <a target='_blank' href="+text+">"+text_display+"</a><br>Author link: <a target='_blank' href="+authorlink+">"+authorlink_display+"</a><br>License URL: <a href="+licenseurl+" target='_blank'>"+licenseurl_display+"</a></div>";
-    last_photo_link = text;
+    let safe_text = safeUrl(text);
+    let safe_authorlink = safeUrl(authorlink);
+    let safe_photolink = safeUrl(photolink);
+    let safe_licenseurl = safeUrl(licenseurl);
+    let text_display = shorten(safe_text);
+    let authorlink_display = shorten(safe_authorlink);
+    let licenseurl_display = shorten(safe_licenseurl);
+    document.getElementById('modalHeading').textContent = "Photo: \"" + decodeURIComponent(title.replaceAll("+"," ")) + "\" Attribution";
+    document.getElementById('modalText').innerHTML = "<div><img style='border-radius:5px;max-height: calc(100vh - 15rem);display: block;margin: 0 auto;' src='"+safe_photolink+"'></div><br><div style='white-space:nowrap'>Image link: <a target='_blank' href='"+safe_text+"'>"+text_display+"</a><br>Author link: <a target='_blank' href='"+safe_authorlink+"'>"+authorlink_display+"</a><br>License URL: <a href='"+safe_licenseurl+"' target='_blank'>"+licenseurl_display+"</a></div>";
+    last_photo_link = safe_text;
     showDialog();
   }
   </script>  

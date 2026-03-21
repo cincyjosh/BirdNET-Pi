@@ -16,16 +16,17 @@ $db->busyTimeout(1000);
 
 if(isset($_GET['deletefile'])) {
   ensure_authenticated('You must be authenticated to delete files.');
-  if (preg_match('~^.*(\.\.\/).+$~', $_GET['deletefile'])) {
+  $base_dir = realpath($home . "/BirdSongs/Extracted/By_Date");
+  $file_pointer = realpath($home . "/BirdSongs/Extracted/By_Date/" . $_GET['deletefile']);
+  if ($base_dir === false || $file_pointer === false || strpos($file_pointer . '/', $base_dir . '/') !== 0) {
     echo "Error";
     die();
   }
   $db_writable = new SQLite3('./scripts/birds.db', SQLITE3_OPEN_READWRITE);
-  $db->busyTimeout(1000);
+  $db->busyTimeout(5000);
   $statement1 = $db_writable->prepare('DELETE FROM detections WHERE File_Name = :file_name LIMIT 1');
   ensure_db_ok($statement1);
-  $statement1->bindValue(':file_name', explode("/", $_GET['deletefile'])[2]);
-  $file_pointer = $home."/BirdSongs/Extracted/By_Date/".$_GET['deletefile'];
+  $statement1->bindValue(':file_name', basename($file_pointer));
   if (!exec("sudo rm " . escapeshellarg($file_pointer) . " 2>&1 && sudo rm " . escapeshellarg($file_pointer . ".png") . " 2>&1", $output)) {
     echo "OK";
   } else {
@@ -76,11 +77,11 @@ if(isset($_GET['getlabels'])) {
 
 if(isset($_GET['changefile']) && isset($_GET['newname'])) {
   ensure_authenticated('You must be authenticated to delete files.');
-  if (preg_match('~^.*(\.\.\/).+$~', $_GET['changefile'])) {
+  $oldname = basename(urldecode($_GET['changefile']));
+  if ($oldname === '' || $oldname === '.' || $oldname === '..') {
     echo "Error";
     die();
   }
-  $oldname = basename(urldecode($_GET['changefile']));
   $newname = urldecode($_GET['newname']);
   if (!exec("sudo -u " . escapeshellarg($user) . " " . escapeshellarg($home . "/BirdNET-Pi/scripts/birdnet_changeidentification.sh") . " " . escapeshellarg($oldname) . " " . escapeshellarg($newname) . " log_errors 2>&1", $output)) {
     echo "OK";
