@@ -23,7 +23,7 @@ if(isset($kiosk) && $kiosk == true) {
 }
 
 $db = new SQLite3('./scripts/birds.db', SQLITE3_OPEN_READONLY);
-$db->busyTimeout(1000);
+$db->busyTimeout(5000);
 
 $summary = get_summary();
 $totalcount = $summary['totalcount'];
@@ -137,22 +137,30 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
       $not = "";
       $operator = "OR";
     }
-    $searchquery = "AND (Com_name ".$not."LIKE '%".$_GET['searchterm']."%' ".$operator." Sci_name ".$not."LIKE '%".$_GET['searchterm']."%' ".$operator." Confidence ".$not."LIKE '%".$_GET['searchterm']."%' ".$operator." File_Name ".$not."LIKE '%".$_GET['searchterm']."%' ".$operator." Time ".$not."LIKE '%".$_GET['searchterm']."%')";
+    $searchquery = "AND (Com_name {$not}LIKE ? {$operator} Sci_name {$not}LIKE ? {$operator} Confidence {$not}LIKE ? {$operator} File_Name {$not}LIKE ? {$operator} Time {$not}LIKE ?)";
+    $searchparam = '%' . $_GET['searchterm'] . '%';
   } else {
     $searchquery = "";
+    $searchparam = null;
   }
   if(isset($_GET['display_limit']) && is_numeric($_GET['display_limit'])){
     $statement0 = $db->prepare('SELECT Date, Time, Com_Name, Sci_Name, Confidence, File_Name FROM detections WHERE Date == Date(\'now\', \'localtime\') '.$searchquery.' ORDER BY Time DESC LIMIT '.(intval($_GET['display_limit'])-40).',40');
   } else {
     // legacy mode
     if(isset($_GET['hard_limit']) && is_numeric($_GET['hard_limit'])) {
-      $statement0 = $db->prepare('SELECT Date, Time, Com_Name, Sci_Name, Confidence, File_Name FROM detections WHERE Date == Date(\'now\', \'localtime\') '.$searchquery.' ORDER BY Time DESC LIMIT '.$_GET['hard_limit']);
+      $statement0 = $db->prepare('SELECT Date, Time, Com_Name, Sci_Name, Confidence, File_Name FROM detections WHERE Date == Date(\'now\', \'localtime\') '.$searchquery.' ORDER BY Time DESC LIMIT '.(int)$_GET['hard_limit']);
     } else {
       $statement0 = $db->prepare('SELECT Date, Time, Com_Name, Sci_Name, Confidence, File_Name FROM detections WHERE Date == Date(\'now\', \'localtime\') '.$searchquery.' ORDER BY Time DESC');
     }
-    
   }
   ensure_db_ok($statement0);
+  if ($searchparam !== null) {
+    $statement0->bindValue(1, $searchparam, SQLITE3_TEXT);
+    $statement0->bindValue(2, $searchparam, SQLITE3_TEXT);
+    $statement0->bindValue(3, $searchparam, SQLITE3_TEXT);
+    $statement0->bindValue(4, $searchparam, SQLITE3_TEXT);
+    $statement0->bindValue(5, $searchparam, SQLITE3_TEXT);
+  }
   $result0 = $statement0->execute();
 
   ?> <table>
