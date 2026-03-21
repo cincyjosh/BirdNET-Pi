@@ -26,7 +26,7 @@ if(isset($_GET['deletefile'])) {
   ensure_db_ok($statement1);
   $statement1->bindValue(':file_name', explode("/", $_GET['deletefile'])[2]);
   $file_pointer = $home."/BirdSongs/Extracted/By_Date/".$_GET['deletefile'];
-  if (!exec("sudo rm $file_pointer 2>&1 && sudo rm $file_pointer.png 2>&1", $output)) {
+  if (!exec("sudo rm " . escapeshellarg($file_pointer) . " 2>&1 && sudo rm " . escapeshellarg($file_pointer . ".png") . " 2>&1", $output)) {
     echo "OK";
   } else {
     echo "Error - file deletion failed : " . implode(", ", $output) . "<br>";
@@ -82,7 +82,7 @@ if(isset($_GET['changefile']) && isset($_GET['newname'])) {
   }
   $oldname = basename(urldecode($_GET['changefile']));
   $newname = urldecode($_GET['newname']);
-  if (!exec("sudo -u ".$user." ".$home."/BirdNET-Pi/scripts/birdnet_changeidentification.sh \"$oldname\" \"$newname\" log_errors 2>&1", $output)) {
+  if (!exec("sudo -u " . escapeshellarg($user) . " " . escapeshellarg($home . "/BirdNET-Pi/scripts/birdnet_changeidentification.sh") . " " . escapeshellarg($oldname) . " " . escapeshellarg($newname) . " log_errors 2>&1", $output)) {
     echo "OK";
   } else {
     echo "Error : " . implode(", ", $output) . "<br>";

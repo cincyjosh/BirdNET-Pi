@@ -16,8 +16,8 @@ set_timezone();
 $restore = "cat $home/BirdSongs/restore.log";
 
 if(is_authenticated() && (!isset($_SESSION['behind']) || !isset($_SESSION['behind_time']) || time() > $_SESSION['behind_time'] + 86400)) {
-  shell_exec("sudo -u".$user." git -C ".$home."/BirdNET-Pi fetch > /dev/null 2>/dev/null &");
-  $str = trim(shell_exec("sudo -u".$user." git -C ".$home."/BirdNET-Pi status"));
+  shell_exec("sudo -u " . escapeshellarg($user) . " git -C " . escapeshellarg($home . "/BirdNET-Pi") . " fetch > /dev/null 2>/dev/null &");
+  $str = trim(shell_exec("sudo -u " . escapeshellarg($user) . " git -C " . escapeshellarg($home . "/BirdNET-Pi") . " status"));
   if (preg_match("/behind '.*?' by (\d+) commit(s?)\b/", $str, $matches)) {
     $num_commits_behind = $matches[1];
   }

@@ -9,9 +9,18 @@ $user = get_user();
 
 ensure_authenticated();
 
+function sanitize_conf_value($value) {
+  // Strip characters that are dangerous in preg_replace replacement strings.
+  // Newlines would inject additional config keys; backslashes and $ trigger
+  // backreference substitution (e.g. $0 = whole match, \1 = capture group).
+  $value = str_replace(["\n", "\r", "\0"], '', $value);
+  $value = str_replace(['\\', '$'], ['\\\\', '\\$'], $value);
+  return $value;
+}
+
 if (isset($_GET['run_species_count'])) {
    echo "<script>";
-   $output = shell_exec("sudo -u $user ".$home."/BirdNET-Pi/scripts/disk_species_count.sh 2>&1");
+   $output = shell_exec("sudo -u " . escapeshellarg($user) . " " . escapeshellarg($home . "/BirdNET-Pi/scripts/disk_species_count.sh") . " 2>&1");
    $escaped_output = htmlspecialchars($output, ENT_QUOTES | ENT_SUBSTITUTE);
    echo "alert(`$escaped_output`);";
    echo "</script>";
@@ -23,7 +32,7 @@ if(isset($_GET['submit'])) {
   $update_caddyfile = false;
 
   if(isset($_GET["caddy_pwd"])) {
-    $caddy_pwd = $_GET["caddy_pwd"];
+    $caddy_pwd = sanitize_conf_value($_GET["caddy_pwd"]);
     if(strcmp($caddy_pwd,$config['CADDY_PWD']) !== 0) {
       $contents = preg_replace("/CADDY_PWD=.*/", "CADDY_PWD=\"$caddy_pwd\"", $contents);
       $update_caddyfile = true;
@@ -31,7 +40,7 @@ if(isset($_GET['submit'])) {
   }
 
   if(isset($_GET["ice_pwd"])) {
-    $ice_pwd = $_GET["ice_pwd"];
+    $ice_pwd = sanitize_conf_value($_GET["ice_pwd"]);
     if(strcmp($ice_pwd,$config['ICE_PWD']) !== 0) {
       $contents = preg_replace("/ICE_PWD=.*/", "ICE_PWD=$ice_pwd", $contents);
       $restart_livestream = true;
@@ -41,7 +50,7 @@ if(isset($_GET['submit'])) {
   if(isset($_GET["birdnetpi_url"])) {
     $birdnetpi_url = $_GET["birdnetpi_url"];
     // remove trailing slash to prevent conf from becoming broken
-    $birdnetpi_url = rtrim($birdnetpi_url, '/');
+    $birdnetpi_url = sanitize_conf_value(rtrim($birdnetpi_url, '/'));
     if(strcmp($birdnetpi_url,$config['BIRDNETPI_URL']) !== 0) {
       $contents = preg_replace("/BIRDNETPI_URL=.*/", "BIRDNETPI_URL=$birdnetpi_url", $contents);
       $update_caddyfile = true;
@@ -49,7 +58,7 @@ if(isset($_GET['submit'])) {
   }
 
   if(isset($_GET["rtsp_stream"])) {
-    $rtsp_stream = str_replace("\r\n", ",", $_GET["rtsp_stream"]);
+    $rtsp_stream = sanitize_conf_value(str_replace("\r\n", ",", $_GET["rtsp_stream"]));
     if(strcmp($rtsp_stream,$config['RTSP_STREAM']) !== 0) {
       $contents = preg_replace("/RTSP_STREAM=.*/", "RTSP_STREAM=\"$rtsp_stream\"", $contents);
       $restart_livestream = True;
@@ -57,7 +66,7 @@ if(isset($_GET['submit'])) {
   }
 
   if (isset($_GET["rtsp_stream_to_livestream"])) {
-    $rtsp_stream_selected = trim($_GET["rtsp_stream_to_livestream"]);
+    $rtsp_stream_selected = sanitize_conf_value(trim($_GET["rtsp_stream_to_livestream"]));
 
     //Setting exists already, see if the value changed
     if (strcmp($rtsp_stream_selected, $config['RTSP_STREAM_TO_LIVESTREAM']) !== 0) {
@@ -67,7 +76,7 @@ if(isset($_GET['submit'])) {
   }
 
   if (isset($_GET["activate_freqshift_in_livestream"])) {
-    $activate_freqshift_in_livestream = trim($_GET["activate_freqshift_in_livestream"]);
+    $activate_freqshift_in_livestream = sanitize_conf_value(trim($_GET["activate_freqshift_in_livestream"]));
 
     //Setting exists already, see if the value changed
     if (strcmp($activate_freqshift_in_livestream, $config['ACTIVATE_FREQSHIFT_IN_LIVESTREAM']) !== 0) {
@@ -119,7 +128,7 @@ if(isset($_GET['submit'])) {
   }
 
   if(isset($_GET["freqshift_tool"])) {
-    $freqshift_tool = $_GET["freqshift_tool"];
+    $freqshift_tool = sanitize_conf_value($_GET["freqshift_tool"]);
     if(strcmp($freqshift_tool,$config['FREQSHIFT_TOOL']) !== 0) {
       $contents = preg_replace("/FREQSHIFT_TOOL=.*/", "FREQSHIFT_TOOL=$freqshift_tool", $contents);
     }
@@ -133,7 +142,7 @@ if(isset($_GET['submit'])) {
   }
 
   if(isset($_GET["full_disk"])) {
-    $full_disk = $_GET["full_disk"];
+    $full_disk = sanitize_conf_value($_GET["full_disk"]);
     if(strcmp($full_disk,$config['FULL_DISK']) !== 0) {
       $contents = preg_replace("/FULL_DISK=.*/", "FULL_DISK=$full_disk", $contents);
     }
@@ -161,7 +170,7 @@ if (isset($_GET["max_files_species"])) {
   }
 
   if(isset($_GET["rec_card"])) {
-    $rec_card = $_GET["rec_card"];
+    $rec_card = sanitize_conf_value($_GET["rec_card"]);
     if(strcmp($rec_card,$config['REC_CARD']) !== 0) {
       $contents = preg_replace("/REC_CARD=.*/", "REC_CARD=\"$rec_card\"", $contents);
     }
@@ -189,7 +198,7 @@ if (isset($_GET["max_files_species"])) {
   }
 
   if(isset($_GET["audiofmt"])) {
-    $audiofmt = $_GET["audiofmt"];
+    $audiofmt = sanitize_conf_value($_GET["audiofmt"]);
     if(strcmp($audiofmt,$config['AUDIOFMT']) !== 0) {
       $contents = preg_replace("/AUDIOFMT=.*/", "AUDIOFMT=$audiofmt", $contents);
     }
@@ -231,33 +240,33 @@ if (isset($_GET["max_files_species"])) {
   }
 
   if(isset($_GET["custom_image"])) {
-    $custom_image = $_GET["custom_image"];
+    $custom_image = sanitize_conf_value($_GET["custom_image"]);
     if(strcmp($custom_image,$config['CUSTOM_IMAGE']) !== 0) {
       $contents = preg_replace("/CUSTOM_IMAGE=.*/", "CUSTOM_IMAGE=$custom_image", $contents);
     }
   }
 
   if(isset($_GET["custom_image_label"])) {
-    $custom_image_label = $_GET["custom_image_label"];
+    $custom_image_label = sanitize_conf_value($_GET["custom_image_label"]);
     if(strcmp($custom_image_label,$config['CUSTOM_IMAGE_TITLE']) !== 0) {
       $contents = preg_replace("/CUSTOM_IMAGE_TITLE=.*/", "CUSTOM_IMAGE_TITLE=\"$custom_image_label\"", $contents);
     }
   }
 
   if (isset($_GET["LogLevel_BirdnetRecordingService"])) {
-    $birdnet_recording_service_log_level = trim($_GET["LogLevel_BirdnetRecordingService"]);
+    $birdnet_recording_service_log_level = sanitize_conf_value(trim($_GET["LogLevel_BirdnetRecordingService"]));
 	if (strcmp($birdnet_recording_service_log_level, $config['LogLevel_BirdnetRecordingService']) !== 0) {
 		$contents = preg_replace("/LogLevel_BirdnetRecordingService=.*/", "LogLevel_BirdnetRecordingService=\"$birdnet_recording_service_log_level\"", $contents);
 	}
   }
   if (isset($_GET["LogLevel_SpectrogramViewerService"])) {
-    $spectrogram_viewer_service_log_level = trim($_GET["LogLevel_SpectrogramViewerService"]);
+    $spectrogram_viewer_service_log_level = sanitize_conf_value(trim($_GET["LogLevel_SpectrogramViewerService"]));
 	if (strcmp($spectrogram_viewer_service_log_level, $config['LogLevel_SpectrogramViewerService']) !== 0) {
 		$contents = preg_replace("/LogLevel_SpectrogramViewerService=.*/", "LogLevel_SpectrogramViewerService=\"$spectrogram_viewer_service_log_level\"", $contents);
 	}
   }
   if (isset($_GET["LogLevel_LiveAudioStreamService"])) {
-    $livestream_audio_service_log_level = trim($_GET["LogLevel_LiveAudioStreamService"]);
+    $livestream_audio_service_log_level = sanitize_conf_value(trim($_GET["LogLevel_LiveAudioStreamService"]));
 	if (strcmp($livestream_audio_service_log_level, $config['LogLevel_LiveAudioStreamService']) !== 0) {
 		$contents = preg_replace("/LogLevel_LiveAudioStreamService=.*/", "LogLevel_LiveAudioStreamService=\"$livestream_audio_service_log_level\"", $contents);
 		$restart_livestream = True;
