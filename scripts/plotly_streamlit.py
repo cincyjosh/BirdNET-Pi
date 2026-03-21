@@ -73,7 +73,7 @@ def get_todays_count(conn):
 @st.cache_data(ttl=300)
 def get_data(_conn: Connection, flush_cache):
     print_now('** get_data **')
-    df1 = pd.read_sql("SELECT Date, Time, Sci_Name, Com_Name, Confidence, File_Name FROM detections", con=_conn)
+    df1 = pd.read_sql("SELECT Date, Time, Sci_Name, Com_Name, Confidence, File_Name FROM detections ORDER BY Date DESC, Time DESC LIMIT 50000", con=_conn)
     return df1
 
 

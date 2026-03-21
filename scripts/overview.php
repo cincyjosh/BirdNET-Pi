@@ -13,7 +13,7 @@ $myDate = date('Y-m-d');
 $chart = "Combo-$myDate.png";
 
 $db = new SQLite3('./scripts/birds.db', SQLITE3_OPEN_READONLY);
-$db->busyTimeout(1000);
+$db->busyTimeout(5000);
 
 if(isset($_GET['custom_image'])){
   if(isset($config["CUSTOM_IMAGE"])) {
@@ -187,8 +187,8 @@ if(isset($_GET['ajax_left_chart']) && $_GET['ajax_left_chart'] == "true") {
 
 if(isset($_GET['ajax_center_chart']) && $_GET['ajax_center_chart'] == "true") {
 
-  // Retrieve the cached data from session without regenerating
-  $chart_data = $_SESSION['chart_data'];
+  // Retrieve the cached data from session, regenerating if missing
+  $chart_data = isset($_SESSION['chart_data']) ? $_SESSION['chart_data'] : get_summary();
 ?>
   <table><tr>
   <th>Total</th>
