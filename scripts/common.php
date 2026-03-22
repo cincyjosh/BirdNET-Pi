@@ -109,7 +109,8 @@ function debug_log($message) {
 }
 
 function get_com_en_name($sci_name) {
-  if (!isset($_labels_flickr)) {
+  static $_labels_flickr = null;
+  if ($_labels_flickr === null) {
     $_labels_flickr = json_decode(file_get_contents(get_home() . "/BirdNET-Pi/model/l18n/labels_en.json"), true);
   }
   $engname = $_labels_flickr[$sci_name];
@@ -138,7 +139,8 @@ function get_label($record, $sort_by, $date=null) {
 }
 
 function get_db() {
-  if (!isset($_db)) {
+  static $_db = null;
+  if ($_db === null) {
     $_db = new SQLite3('./scripts/birds.db', SQLITE3_OPEN_READONLY);
     $_db->busyTimeout(5000);
   }

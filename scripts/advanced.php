@@ -90,22 +90,22 @@ if(isset($_GET['submit'])) {
     }
   }
   
-  if(isset($_GET["overlap"])) {
-    $overlap = $_GET["overlap"];
+  if(isset($_GET["overlap"]) && is_numeric($_GET["overlap"])) {
+    $overlap = sanitize_conf_value($_GET["overlap"]);
     if(strcmp($overlap,$config['OVERLAP']) !== 0) {
       $contents = preg_replace("/OVERLAP=.*/", "OVERLAP=$overlap", $contents);
     }
   }
 
-  if(isset($_GET["confidence"])) {
-    $confidence = $_GET["confidence"];
+  if(isset($_GET["confidence"]) && is_numeric($_GET["confidence"])) {
+    $confidence = sanitize_conf_value($_GET["confidence"]);
     if(strcmp($confidence,$config['CONFIDENCE']) !== 0) {
       $contents = preg_replace("/CONFIDENCE=.*/", "CONFIDENCE=$confidence", $contents);
     }
   }
 
-  if(isset($_GET["sensitivity"])) {
-    $sensitivity = $_GET["sensitivity"];
+  if(isset($_GET["sensitivity"]) && is_numeric($_GET["sensitivity"])) {
+    $sensitivity = sanitize_conf_value($_GET["sensitivity"]);
     if(strcmp($sensitivity,$config['SENSITIVITY']) !== 0) {
       $contents = preg_replace("/SENSITIVITY=.*/", "SENSITIVITY=$sensitivity", $contents);
     }

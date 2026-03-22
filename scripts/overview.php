@@ -31,6 +31,7 @@ if(isset($_GET['custom_image'])){
 
 if(isset($_GET['blacklistimage'])) {
   ensure_authenticated('You must be authenticated.');
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) { http_response_code(403); echo "Forbidden"; die(); }
   $imageid = $_GET['blacklistimage'];
   $file_handle = fopen($home."/BirdNET-Pi/scripts/blacklisted_images.txt", 'a+');
   fwrite($file_handle, $imageid . "\n");
@@ -234,6 +235,7 @@ if (get_included_files()[0] === __FILE__) {
   <script src="static/Chart.bundle.js"></script>
   <script src="static/chartjs-plugin-trendline.min.js"></script>
   <script>
+  const CSRF_TOKEN = "<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>";
   var last_photo_link;
   var dialog = document.querySelector('dialog');
   dialogPolyfill.registerDialog(dialog);
@@ -256,7 +258,7 @@ if (get_included_files()[0] === __FILE__) {
        location.reload();
       }
     }
-    xhttp.open("GET", "overview.php?blacklistimage="+result, true);
+    xhttp.open("GET", "overview.php?blacklistimage="+encodeURIComponent(result)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
     xhttp.send();
 
   }

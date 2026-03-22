@@ -339,6 +339,8 @@ if (get_included_files()[0] === __FILE__) {
   <script src="static/chartjs-plugin-trendline.min.js"></script>
   
   <script>
+    const CSRF_TOKEN = "<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>";
+
     function deleteDetection(filename,copylink=false) {
     if (confirm("Are you sure you want to delete this detection from the database?") == true) {
       const xhttp = new XMLHttpRequest();
@@ -353,7 +355,7 @@ if (get_included_files()[0] === __FILE__) {
           alert("Database busy.")
         }
       }
-      xhttp.open("GET", "play.php?deletefile="+filename, true);
+      xhttp.open("GET", "play.php?deletefile="+encodeURIComponent(filename)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
       xhttp.send();
     }
   }
@@ -380,7 +382,7 @@ if (get_included_files()[0] === __FILE__) {
        location.reload();
       }
     }
-    xhttp.open("GET", "overview.php?blacklistimage="+result, true);
+    xhttp.open("GET", "overview.php?blacklistimage="+encodeURIComponent(result)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
     xhttp.send();
 
   }

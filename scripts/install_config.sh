@@ -72,7 +72,7 @@ CADDY_PWD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
 ## trusted source for the stream. You will never need to enter this manually
 ## anywhere other than here and it stays on 'localhost.'
 
-ICE_PWD=birdnetpi
+ICE_PWD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
 
 #-----------------------  Web-hosting/Caddy File-server -----------------------#
 #_______The three variables below can be set to enable internet access_________#

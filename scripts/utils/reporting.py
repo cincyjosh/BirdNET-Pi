@@ -91,6 +91,7 @@ def write_to_db(file: ParseFileName, detection: Detection):
     conf = get_settings()
     # Connect to SQLite Database
     for attempt_number in range(3):
+        con = None
         try:
             con = sqlite3.connect(DB_PATH, timeout=10)
             con.execute("PRAGMA journal_mode=WAL")
@@ -104,11 +105,13 @@ def write_to_db(file: ParseFileName, detection: Detection):
             # Overlap, File_Name))
 
             con.commit()
-            con.close()
             break
-        except BaseException as e:
+        except Exception as e:
             log.warning("Database busy: %s", e)
             sleep(2)
+        finally:
+            if con is not None:
+                con.close()
 
 
 def summary(file: ParseFileName, detection: Detection):
@@ -162,7 +165,7 @@ def apprise(file: ParseFileName, detections: [Detection]):
                                          os.path.basename(detection.file_name_extr), detection.date, detection.time, str(detection.week),
                                          conf['LATITUDE'], conf['LONGITUDE'], conf['CONFIDENCE'], conf['SENSITIVITY'], conf['OVERLAP'])
 
-            except BaseException as e:
+            except Exception as e:
                 log.exception('Error during Apprise:', exc_info=e)
 
             species_apprised_this_run.append(detection.species)
@@ -191,7 +194,7 @@ def bird_weather(file: ParseFileName, detections: [Detection]):
                                      headers={'Content-Type': 'audio/flac'})
             log.info("Soundscape POST Response Status - %d", response.status_code)
             sdata = response.json()
-        except BaseException as e:
+        except Exception as e:
             log.error("Cannot POST soundscape: %s", e)
             return
         if not sdata.get('success'):
@@ -214,7 +217,7 @@ def bird_weather(file: ParseFileName, detections: [Detection]):
             try:
                 response = requests.post(detection_url, json=data, timeout=20)
                 log.info("Detection POST Response Status - %d", response.status_code)
-            except BaseException as e:
+            except Exception as e:
                 log.error("Cannot POST detection: %s", e)
 
 
@@ -224,5 +227,5 @@ def heartbeat():
         try:
             result = requests.get(url=conf['HEARTBEAT_URL'], timeout=10)
             log.info('Heartbeat: %s', result.text)
-        except BaseException as e:
+        except Exception as e:
             log.error('Error during heartbeat: %s', e)

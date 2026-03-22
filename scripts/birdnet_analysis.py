@@ -95,7 +95,7 @@ def process_file(file_name, report_queue):
             log.warning('reporting queue not yet empty')
         report_queue.join()
         report_queue.put((file, detections))
-    except BaseException as e:
+    except Exception as e:
         stderr = e.stderr.decode('utf-8') if isinstance(e, CalledProcessError) else ""
         log.exception(f'Unexpected error: {stderr}', exc_info=e)
 
@@ -119,7 +119,7 @@ def handle_reporting_queue(queue):
             bird_weather(file, detections)
             heartbeat()
             os.remove(file.file_name)
-        except BaseException as e:
+        except Exception as e:
             stderr = e.stderr.decode('utf-8') if isinstance(e, CalledProcessError) else ""
             log.exception(f'Unexpected error: {stderr}', exc_info=e)
 

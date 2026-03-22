@@ -56,26 +56,26 @@ backup_check() {
 
 backup() {
   log "Starting backup, this might take a while"
-  CMD='tar --create -f "$ARCHIVE"'
-  for obj in  "${optional[@]}";do
-    [ -f $obj ] && CMD="$CMD -C $(dirname "$obj") $(basename "$obj")"
+  local tar_args=()
+  for obj in "${optional[@]}"; do
+    [ -f "$obj" ] && tar_args+=(-C "$(dirname "$obj")" "$(basename "$obj")")
   done
-  for obj in  "${required[@]}";do
-    CMD="$CMD -C $(dirname "$obj") $(basename "$obj")"
+  for obj in "${required[@]}"; do
+    tar_args+=(-C "$(dirname "$obj")" "$(basename "$obj")")
   done
-  eval "$CMD"
+  tar --create -f "$ARCHIVE" "${tar_args[@]}"
   log "Backup done"
 }
 
 estimated_backup_size() {
-  CMD='du -s -c -b '
-  for obj in  "${optional[@]}";do
-    [ -f $obj ] && CMD="$CMD $obj"
+  local du_args=()
+  for obj in "${optional[@]}"; do
+    [ -f "$obj" ] && du_args+=("$obj")
   done
-  for obj in  "${required[@]}";do
-    CMD="$CMD $obj"
+  for obj in "${required[@]}"; do
+    du_args+=("$obj")
   done
-  ESTIMATED=$(eval "$CMD | grep total | cut -f 1")
+  ESTIMATED=$(du -s -c -b "${du_args[@]}" | grep total | cut -f 1)
 }
 
 available_space_for_backup() {

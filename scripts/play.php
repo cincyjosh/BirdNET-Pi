@@ -16,6 +16,7 @@ $db->busyTimeout(1000);
 
 if(isset($_GET['deletefile'])) {
   ensure_authenticated('You must be authenticated to delete files.');
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) { http_response_code(403); echo "Forbidden"; die(); }
   $base_dir = realpath($home . "/BirdSongs/Extracted/By_Date");
   $file_pointer = realpath($home . "/BirdSongs/Extracted/By_Date/" . $_GET['deletefile']);
   if ($base_dir === false || $file_pointer === false || strpos($file_pointer . '/', $base_dir . '/') !== 0) {
@@ -23,7 +24,7 @@ if(isset($_GET['deletefile'])) {
     die();
   }
   $db_writable = new SQLite3('./scripts/birds.db', SQLITE3_OPEN_READWRITE);
-  $db->busyTimeout(5000);
+  $db_writable->busyTimeout(5000);
   $statement1 = $db_writable->prepare('DELETE FROM detections WHERE File_Name = :file_name LIMIT 1');
   ensure_db_ok($statement1);
   $statement1->bindValue(':file_name', basename($file_pointer));
@@ -42,6 +43,7 @@ if(isset($_GET['deletefile'])) {
 
 if(isset($_GET['excludefile'])) {
   ensure_authenticated('You must be authenticated to change the protection of files.');
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) { http_response_code(403); echo "Forbidden"; die(); }
   if(!file_exists($home."/BirdNET-Pi/scripts/disk_check_exclude.txt")) {
     file_put_contents($home."/BirdNET-Pi/scripts/disk_check_exclude.txt", "##start\n##end\n");
   }
@@ -77,6 +79,7 @@ if(isset($_GET['getlabels'])) {
 
 if(isset($_GET['changefile']) && isset($_GET['newname'])) {
   ensure_authenticated('You must be authenticated to delete files.');
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) { http_response_code(403); echo "Forbidden"; die(); }
   $oldname = basename(urldecode($_GET['changefile']));
   if ($oldname === '' || $oldname === '.' || $oldname === '..') {
     echo "Error";
@@ -95,6 +98,7 @@ $shifted_path = $home."/BirdSongs/Extracted/By_Date/shifted/";
 
 if(isset($_GET['shiftfile'])) {
   ensure_authenticated('You cannot shift files for this installation');
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) { http_response_code(403); echo "Forbidden"; die(); }
 
     $filename = $_GET['shiftfile'];
     $pp = pathinfo($filename);
@@ -107,15 +111,16 @@ if(isset($_GET['shiftfile'])) {
   $freqshift_tool = $config['FREQSHIFT_TOOL'];
 
   if ($freqshift_tool == "ffmpeg") {
-    $cmd = "sudo /usr/bin/nohup /usr/bin/ffmpeg -y -i ".escapeshellarg($pi.$filename)." -af \"rubberband=pitch=".$config['FREQSHIFT_LO']."/".$config['FREQSHIFT_HI']."\" ".escapeshellarg($shifted_path.$filename)."";
-    shell_exec("sudo mkdir -p ".$shifted_path.$dir." && ".$cmd);
+    $pitch_arg = escapeshellarg($config['FREQSHIFT_LO'] . "/" . $config['FREQSHIFT_HI']);
+    $cmd = "sudo /usr/bin/nohup /usr/bin/ffmpeg -y -i ".escapeshellarg($pi.$filename)." -af \"rubberband=pitch=$pitch_arg\" ".escapeshellarg($shifted_path.$filename);
+    shell_exec("sudo mkdir -p ".escapeshellarg($shifted_path.$dir)." && ".$cmd);
 
   } else if ($freqshift_tool == "sox") {
     //linux.die.net/man/1/sox
     $soxopt = "-q";
-    $soxpitch = $config['FREQSHIFT_PITCH'];
+    $soxpitch = escapeshellarg($config['FREQSHIFT_PITCH']);
     $cmd = "sudo /usr/bin/nohup /usr/bin/sox ".escapeshellarg($pi.$filename)." ".escapeshellarg($shifted_path.$filename)." pitch ".$soxopt." ".$soxpitch;
-   shell_exec("sudo mkdir -p ".$shifted_path.$dir." && ".$cmd);
+    shell_exec("sudo mkdir -p ".escapeshellarg($shifted_path.$dir)." && ".$cmd);
   }
     } else {
      $cmd = "sudo rm -f " . escapeshellarg($shifted_path.$filename);
@@ -170,6 +175,7 @@ if (get_included_files()[0] === __FILE__) {
 ?>
 <script src="static/custom-audio-player.js"></script>
 <script>
+const CSRF_TOKEN = "<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>";
 
 function deleteDetection(filename,copylink=false) {
   if (confirm("Are you sure you want to delete this detection from the database?") == true) {
@@ -185,7 +191,7 @@ function deleteDetection(filename,copylink=false) {
         alert(this.responseText);
       }
     }
-    xhttp.open("GET", "play.php?deletefile="+filename, true);
+    xhttp.open("GET", "play.php?deletefile="+encodeURIComponent(filename)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
     xhttp.send();
   }
 }
@@ -206,9 +212,9 @@ function toggleLock(filename, type, elem) {
     }
   }
   if(type == "add") {
-    xhttp.open("GET", "play.php?excludefile="+filename+"&exclude_add=true", true);
+    xhttp.open("GET", "play.php?excludefile="+encodeURIComponent(filename)+"&exclude_add=true&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
   } else {
-    xhttp.open("GET", "play.php?excludefile="+filename+"&exclude_del=true", true);  
+    xhttp.open("GET", "play.php?excludefile="+encodeURIComponent(filename)+"&exclude_del=true&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
   }
   xhttp.send();
   elem.setAttribute("src","images/spinner.gif");
@@ -251,10 +257,10 @@ function toggleShiftFreq(filename, shiftAction, elem) {
   }
   if(shiftAction == "shift") {
     console.log("shifting freqs of " + filename);
-    xhttp.open("GET", "play.php?shiftfile="+filename+"&doshift=true", true);
+    xhttp.open("GET", "play.php?shiftfile="+encodeURIComponent(filename)+"&doshift=true&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
   } else {
     console.log("unshifting freqs of " + filename);
-    xhttp.open("GET", "play.php?shiftfile="+filename, true);  
+    xhttp.open("GET", "play.php?shiftfile="+encodeURIComponent(filename)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
   }
   xhttp.send();
   elem.setAttribute("src","images/spinner.gif");
@@ -361,7 +367,7 @@ function changeDetection(filename,copylink=false) {
             alert(this.responseText);
           }
         }
-        xhttp2.open("GET", "play.php?changefile="+filename+"&newname="+newname, true);
+        xhttp2.open("GET", "play.php?changefile="+encodeURIComponent(filename)+"&newname="+encodeURIComponent(newname)+"&csrf_token="+encodeURIComponent(CSRF_TOKEN), true);
         xhttp2.send();
       }
       // Hide the modal box and reset the dropdown selection
@@ -624,10 +630,10 @@ echo "<table>
       echo "<input type='hidden' name='sort' value=\"" . htmlspecialchars($_GET['sort'], ENT_QUOTES) . "\">";
     }
     if(isset($_GET['only_excluded'])) {
-      echo "<input type='hidden' name='only_excluded' value='" . $_GET['only_excluded'] . "'>";
+      echo "<input type='hidden' name='only_excluded' value='" . htmlspecialchars($_GET['only_excluded'], ENT_QUOTES, 'UTF-8') . "'>";
     }
     if(isset($_SESSION['date'])) {
-      echo "<input type='hidden' name='date' value='" . $_SESSION['date'] . "'>";
+      echo "<input type='hidden' name='date' value='" . htmlspecialchars($_SESSION['date'], ENT_QUOTES, 'UTF-8') . "'>";
     }
     echo "<input type='hidden' name='limit' value='" . ($limit + 40) . "'>";
     echo "<button type='submit' class='loadmore'>Load 40 more...</button>";
