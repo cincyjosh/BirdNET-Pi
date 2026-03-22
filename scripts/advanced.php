@@ -27,6 +27,11 @@ if (isset($_GET['run_species_count'])) {
  }
 
 if(isset($_GET['submit'])) {
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) {
+    http_response_code(403);
+    echo '<p>Invalid CSRF token. Please reload the page and try again.</p>';
+    exit;
+  }
   $contents = file_get_contents('/etc/birdnet/birdnet.conf');
   $restart_livestream = false;
   $update_caddyfile = false;
@@ -302,6 +307,7 @@ $newconfig = get_config();
 ?>
       <div class="brbanner"><h1>Advanced Settings</h1></div><br>
     <form id="advancedform" action="" method="GET">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>">
       <table class="settingstable"><tr><td>
       <h2>Privacy Threshold</h2>
       <div class="slidecontainer">

@@ -43,6 +43,7 @@ function update() {
 </script>
 <div class="systemcontrols">
 <form action="views.php" method="GET">
+  <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>">
   <div>
     <button type="submit" name="submit" value="sudo reboot" onclick="return confirm('Are you sure you want to reboot?')">Reboot</button>
   </div>

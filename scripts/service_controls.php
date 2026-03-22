@@ -33,6 +33,7 @@ function service_status($name) {
 <br>
 <div class="servicecontrols">
 <form action="views.php" method="GET">
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>">
     <h3>Live Audio Stream <?php echo service_status("livestream.service");?></h3>
   <div role="group" class="btn-group-center">
     <button type="submit" name="submit" value="sudo systemctl stop livestream.service && sudo systemctl stop icecast2.service">Stop</button>

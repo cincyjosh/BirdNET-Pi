@@ -7,6 +7,7 @@ if (session_status() !== PHP_SESSION_ACTIVE)
 
 function ensure_db_ok($sql_stmt) {
   if ($sql_stmt == False) {
+    error_log("BirdNET-Pi: database prepare() failed — database may be locked or corrupt");
     echo "Database is busy";
     header("refresh:1;");
     exit;
@@ -67,12 +68,16 @@ function get_service_mount_name() {
 }
 
 function is_authenticated() {
-  $ret = false;
-  if (isset($_SERVER['PHP_AUTH_USER'])) {
-    $config = get_config();
-    $ret = ($_SERVER['PHP_AUTH_PW'] == $config['CADDY_PWD'] && $_SERVER['PHP_AUTH_USER'] == 'birdnet');
+  if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
+    return false;
   }
-  return $ret;
+  $config = get_config();
+  $caddy_pwd = $config['CADDY_PWD'] ?? '';
+  if (strlen($caddy_pwd) === 0) {
+    return false;
+  }
+  return hash_equals($caddy_pwd, $_SERVER['PHP_AUTH_PW']) &&
+         $_SERVER['PHP_AUTH_USER'] === 'birdnet';
 }
 
 function ensure_authenticated($error_message = 'You cannot edit the settings for this installation') {
@@ -82,6 +87,18 @@ function ensure_authenticated($error_message = 'You cannot edit the settings for
     echo '<table><tr><td>' . $error_message . '</td></tr></table>';
     exit;
   }
+}
+
+function get_csrf_token() {
+  if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+  }
+  return $_SESSION['csrf_token'];
+}
+
+function verify_csrf_token($token) {
+  $expected = $_SESSION['csrf_token'] ?? '';
+  return hash_equals($expected, $token);
 }
 
 function debug_log($message) {

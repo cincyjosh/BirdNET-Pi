@@ -220,6 +220,11 @@ if(isset($_GET['view'])){
   }
 } elseif(isset($_GET['submit'])) {
   ensure_authenticated();
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) {
+    http_response_code(403);
+    echo '<p>Invalid CSRF token. Please reload the page and try again.</p>';
+    exit;
+  }
   $allowedCommands = array('sudo systemctl stop livestream.service && sudo systemctl stop icecast2.service',
                      'sudo systemctl restart livestream.service && sudo systemctl restart icecast2.service',
                      'sudo systemctl disable --now livestream.service && sudo systemctl disable icecast2 && sudo systemctl stop icecast2.service',
