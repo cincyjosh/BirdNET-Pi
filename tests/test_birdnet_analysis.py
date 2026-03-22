@@ -14,7 +14,6 @@ from unittest.mock import MagicMock, patch, call
 # Stub modules that are unavailable on the dev machine
 for _mod in ('inotify', 'inotify.adapters', 'inotify.constants',
              'apprise', 'soundfile', 'requests', 'librosa',
-             'PIL', 'PIL.Image', 'PIL.ImageDraw', 'PIL.ImageFont',
              'tflite_runtime', 'tflite_runtime.interpreter'):
     sys.modules.setdefault(_mod, MagicMock())
 

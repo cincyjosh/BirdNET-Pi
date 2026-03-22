@@ -10,7 +10,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 for _mod in ('apprise', 'soundfile', 'requests', 'librosa',
-             'PIL', 'PIL.Image', 'PIL.ImageDraw', 'PIL.ImageFont',
              'inotify', 'inotify.adapters', 'inotify.constants'):
     sys.modules.setdefault(_mod, MagicMock())
 

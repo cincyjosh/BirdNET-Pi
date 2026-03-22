@@ -15,8 +15,7 @@ from unittest.mock import MagicMock, patch
 from unittest import mock
 
 # Stub out optional heavy dependencies before importing reporting
-for _mod in ('apprise', 'soundfile', 'requests', 'PIL', 'PIL.Image',
-             'PIL.ImageDraw', 'PIL.ImageFont',
+for _mod in ('apprise', 'soundfile', 'requests',
              'inotify', 'inotify.adapters', 'inotify.constants'):
     sys.modules.setdefault(_mod, MagicMock())
 

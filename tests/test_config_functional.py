@@ -12,7 +12,6 @@ from unittest.mock import MagicMock
 
 # Stub unavailable modules before any import that might trigger them
 for _mod in ('apprise', 'soundfile', 'requests', 'librosa',
-             'PIL', 'PIL.Image', 'PIL.ImageDraw', 'PIL.ImageFont',
              'inotify', 'inotify.adapters', 'inotify.constants'):
     sys.modules.setdefault(_mod, MagicMock())
 
@@ -161,8 +160,7 @@ class TestConfigDrivenGuards(unittest.TestCase):
     """Verify that empty BIRDWEATHER_ID causes bird_weather() to return early."""
 
     def setUp(self):
-        for _mod in ('apprise', 'soundfile', 'requests',
-                     'PIL', 'PIL.Image', 'PIL.ImageDraw', 'PIL.ImageFont'):
+        for _mod in ('apprise', 'soundfile', 'requests'):
             sys.modules.setdefault(_mod, MagicMock())
         from scripts.utils import reporting as rm
         self.rm = rm
