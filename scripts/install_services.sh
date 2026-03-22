@@ -247,7 +247,7 @@ Restart=on-failure
 RestartSec=5
 Type=simple
 User=${USER}
-ExecStart=$HOME/BirdNET-Pi/birdnet/bin/streamlit run $HOME/BirdNET-Pi/scripts/plotly_streamlit.py --browser.gatherUsageStats false --server.address localhost --server.baseUrlPath "/stats"
+ExecStart=$HOME/BirdNET-Pi/birdnet/bin/streamlit run $HOME/BirdNET-Pi/scripts/plotly_streamlit.py --browser.gatherUsageStats false --server.address localhost --server.baseUrlPath "/stats" --server.enableXsrfProtection false
 
 [Install]
 WantedBy=multi-user.target
