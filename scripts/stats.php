@@ -1,8 +1,8 @@
 <?php
 
 /* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
+$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
 
 ini_set('user_agent', 'PHP_Flickr/1.0');
 error_reporting(E_ERROR);
@@ -118,9 +118,37 @@ function hideDialog() {
   document.getElementById('attribution-dialog').close();
 }
 
+function safeUrl(url) {
+  try {
+    var u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '#';
+    return u.href;
+  } catch(e) { return '#'; }
+}
+
 function setModalText(iter, title, text, authorlink) {
-  document.getElementById('modalHeading').innerHTML = "Photo "+iter+": \""+title+"\" Attribution";
-  document.getElementById('modalText').innerHTML = "<div style='white-space:nowrap'>Image link: <a target='_blank' href="+text+">"+text+"</a><br>Author link: <a target='_blank' href="+authorlink+">"+authorlink+"</a></div>";
+  var heading = document.getElementById('modalHeading');
+  heading.textContent = "Photo " + iter + ": \"" + title + "\" Attribution";
+
+  var safe_text = safeUrl(text);
+  var safe_authorlink = safeUrl(authorlink);
+
+  var imgLink = document.createElement('a');
+  imgLink.href = safe_text; imgLink.target = '_blank'; imgLink.textContent = text;
+  var authorLink = document.createElement('a');
+  authorLink.href = safe_authorlink; authorLink.target = '_blank'; authorLink.textContent = authorlink;
+
+  var div = document.createElement('div');
+  div.style.whiteSpace = 'nowrap';
+  div.appendChild(document.createTextNode('Image link: '));
+  div.appendChild(imgLink);
+  div.appendChild(document.createElement('br'));
+  div.appendChild(document.createTextNode('Author link: '));
+  div.appendChild(authorLink);
+
+  var modalText = document.getElementById('modalText');
+  modalText.textContent = '';
+  modalText.appendChild(div);
   showDialog();
 }
 </script>  

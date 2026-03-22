@@ -1,8 +1,8 @@
 <?php
 
 /* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
+$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
 
 ini_set('session.gc_maxlifetime', 7200);
 session_set_cookie_params(7200);
@@ -395,12 +395,48 @@ if (get_included_files()[0] === __FILE__) {
     return shorter;
   }
 
+  function safeUrl(url) {
+    try {
+      var u = new URL(url);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return '#';
+      return u.href;
+    } catch(e) { return '#'; }
+  }
+
   function setModalText(iter, title, text, authorlink, photolink, licenseurl) {
     let text_display = shorten(text);
     let authorlink_display = shorten(authorlink);
     let licenseurl_display = shorten(licenseurl);
-    document.getElementById('modalHeading').innerHTML = "Photo: \""+decodeURIComponent(title.replaceAll("+"," "))+"\" Attribution";
-    document.getElementById('modalText').innerHTML = "<div><img style='border-radius:5px;max-height: calc(100vh - 15rem);display: block;margin: 0 auto;' src='"+photolink+"'></div><br><div style='white-space:nowrap'>Image link: <a target='_blank' href="+text+">"+text_display+"</a><br>Author link: <a target='_blank' href="+authorlink+">"+authorlink_display+"</a><br>License URL: <a href="+licenseurl+" target='_blank'>"+licenseurl_display+"</a></div>";
+
+    var heading = document.getElementById('modalHeading');
+    heading.textContent = "Photo: \"" + decodeURIComponent(title.replaceAll("+", " ")) + "\" Attribution";
+
+    var safe_text = safeUrl(text);
+    var safe_authorlink = safeUrl(authorlink);
+    var safe_photolink = safeUrl(photolink);
+    var safe_licenseurl = safeUrl(licenseurl);
+
+    var img = document.createElement('img');
+    img.src = safe_photolink;
+    img.style.cssText = 'border-radius:5px;max-height:calc(100vh - 15rem);display:block;margin:0 auto;';
+
+    var imgLink = document.createElement('a'); imgLink.href = safe_text; imgLink.target = '_blank'; imgLink.textContent = text_display;
+    var authorLinkEl = document.createElement('a'); authorLinkEl.href = safe_authorlink; authorLinkEl.target = '_blank'; authorLinkEl.textContent = authorlink_display;
+    var licenseLinkEl = document.createElement('a'); licenseLinkEl.href = safe_licenseurl; licenseLinkEl.target = '_blank'; licenseLinkEl.textContent = licenseurl_display;
+
+    var infoDiv = document.createElement('div');
+    infoDiv.style.whiteSpace = 'nowrap';
+    infoDiv.appendChild(document.createTextNode('Image link: ')); infoDiv.appendChild(imgLink); infoDiv.appendChild(document.createElement('br'));
+    infoDiv.appendChild(document.createTextNode('Author link: ')); infoDiv.appendChild(authorLinkEl); infoDiv.appendChild(document.createElement('br'));
+    infoDiv.appendChild(document.createTextNode('License URL: ')); infoDiv.appendChild(licenseLinkEl);
+
+    var modalText = document.getElementById('modalText');
+    modalText.textContent = '';
+    var imgDiv = document.createElement('div'); imgDiv.appendChild(img);
+    modalText.appendChild(imgDiv);
+    modalText.appendChild(document.createElement('br'));
+    modalText.appendChild(infoDiv);
+
     last_photo_link = text;
     showDialog();
   }

@@ -333,8 +333,28 @@ configure_caddy_php() {
   sed -i 's/www-data/caddy/g' /etc/php/*/fpm/pool.d/www.conf
   systemctl restart php\*-fpm.service
   echo "Adding Caddy sudoers rule"
-  cat << EOF > /etc/sudoers.d/010_caddy-nopasswd
-caddy ALL=(ALL) NOPASSWD: ALL
+  cat << 'EOF' > /etc/sudoers.d/010_caddy-nopasswd
+# BirdNET-Pi: allow caddy (web server) to run only the commands it needs
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl, /bin/systemctl
+caddy ALL=(ALL) NOPASSWD: /usr/sbin/reboot, /sbin/reboot, /usr/bin/reboot
+caddy ALL=(ALL) NOPASSWD: /usr/sbin/shutdown, /sbin/shutdown
+caddy ALL=(ALL) NOPASSWD: /usr/bin/rm, /bin/rm
+caddy ALL=(ALL) NOPASSWD: /usr/bin/mkdir, /bin/mkdir
+caddy ALL=(ALL) NOPASSWD: /usr/bin/ffmpeg
+caddy ALL=(ALL) NOPASSWD: /usr/bin/sox, /usr/local/bin/sox
+caddy ALL=(ALL) NOPASSWD: /usr/bin/nohup
+caddy ALL=(ALL) NOPASSWD: /usr/bin/timedatectl
+caddy ALL=(ALL) NOPASSWD: /usr/bin/date, /bin/date
+caddy ALL=(ALL) NOPASSWD: /usr/bin/tee, /bin/tee
+caddy ALL=(ALL) NOPASSWD: /usr/bin/kill, /bin/kill
+caddy ALL=(ALL) NOPASSWD: /usr/bin/service, /usr/sbin/service
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/restart_services.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/stop_core_services.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/update_caddyfile.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/update_birdnet.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/clear_all_data.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/birdnet_changeidentification.sh
+caddy ALL=(ALL) NOPASSWD: /usr/local/bin/disk_species_count.sh
 EOF
   chmod 0440 /etc/sudoers.d/010_caddy-nopasswd
 }

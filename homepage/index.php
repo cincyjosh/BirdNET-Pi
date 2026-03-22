@@ -8,8 +8,8 @@ if (strpos($requestUri, '/api/v1/') === 0) {
 }
 
 /* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
+$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
 require_once 'scripts/common.php';
 $config = get_config();
 $site_name = get_sitename();
@@ -54,7 +54,7 @@ if(isset($_GET['stream'])){
 </div><div class=\"centered\"><h3>$site_name</h3></div>";
 }
 if(isset($_GET['filename'])) {
-  $filename = $_GET['filename'];
+  $filename = htmlspecialchars($_GET['filename'], ENT_QUOTES, 'UTF-8');
 echo "
 <iframe src=\"views.php?view=Recordings&filename=$filename\"></iframe>";
 } else {

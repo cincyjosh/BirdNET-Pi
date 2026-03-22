@@ -212,5 +212,141 @@ class TestSearchTermInjection(unittest.TestCase):
         self.assertEqual(len(rows), 0)
 
 
+# ---------------------------------------------------------------------------
+# Tests: play.php filename injection ($name interpolated in prepare())
+# ---------------------------------------------------------------------------
+
+def fetch_by_filename_unsafe(con, filename):
+    """Mirrors play.php line 640: prepare() with interpolated $name — still injectable."""
+    return con.execute(
+        f'SELECT * FROM detections WHERE File_Name == "{filename}" ORDER BY Date DESC, Time DESC'
+    ).fetchall()
+
+
+def fetch_by_filename_safe(con, filename):
+    """Fixed pattern — bindValue equivalent: positional parameter."""
+    return con.execute(
+        "SELECT * FROM detections WHERE File_Name = ? ORDER BY Date DESC, Time DESC",
+        (filename,)
+    ).fetchall()
+
+
+class TestPlayPhpFilenameInjection(unittest.TestCase):
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.con = make_db(os.path.join(self.tmpdir.name, "birds.db"))
+
+    def tearDown(self):
+        self.con.close()
+        self.tmpdir.cleanup()
+
+    def test_normal_query_returns_correct_row(self):
+        rows = fetch_by_filename_safe(self.con, "a.wav")
+        self.assertEqual(len(rows), 1)
+
+    def test_injection_works_without_parameterization(self):
+        """Documents the bug: GET ?filename=<payload> bypasses File_Name filter."""
+        payload = '" OR "1"="1'
+        rows = fetch_by_filename_unsafe(self.con, payload)
+        self.assertGreater(len(rows), 1, "Injection should return all rows (documents the bug)")
+
+    def test_injection_blocked_with_parameterization(self):
+        payload = '" OR "1"="1'
+        rows = fetch_by_filename_safe(self.con, payload)
+        self.assertEqual(rows, [], "Injection payload should match no rows with parameterization")
+
+
+# ---------------------------------------------------------------------------
+# Tests: db.py get_todays_count_for / get_this_weeks_count_for sci_name injection
+# ---------------------------------------------------------------------------
+
+def get_todays_count_unsafe(con, sci_name):
+    """Mirrors db.py get_todays_count_for — f-string interpolation."""
+    today = "2024-01-01"
+    select_sql = f"SELECT COUNT(*) FROM detections WHERE Date = DATE('{today}') AND Sci_Name = '{sci_name}'"
+    return con.execute(select_sql).fetchone()[0]
+
+
+def get_todays_count_safe(con, sci_name):
+    """Fixed — parameterized."""
+    today = "2024-01-01"
+    row = con.execute(
+        "SELECT COUNT(*) FROM detections WHERE Date = DATE(?) AND Sci_Name = ?",
+        (today, sci_name)
+    ).fetchone()
+    return row[0] if row else 0
+
+
+def get_species_by_date_unsafe(con, date):
+    """Mirrors db.py get_species_by — f-string date interpolation."""
+    where = f'WHERE Date == "{date}"'
+    return con.execute(
+        f"SELECT Com_Name FROM detections {where} GROUP BY Sci_Name"
+    ).fetchall()
+
+
+def get_species_by_date_safe(con, date):
+    """Fixed — parameterized."""
+    return con.execute(
+        "SELECT Com_Name FROM detections WHERE Date = ? GROUP BY Sci_Name",
+        (date,)
+    ).fetchall()
+
+
+class TestDbPySciNameInjection(unittest.TestCase):
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.con = make_db(os.path.join(self.tmpdir.name, "birds.db"))
+
+    def tearDown(self):
+        self.con.close()
+        self.tmpdir.cleanup()
+
+    def test_normal_count_returns_correct_value(self):
+        count = get_todays_count_safe(self.con, "Pica pica")
+        self.assertEqual(count, 1)
+
+    def test_sci_name_injection_works_without_parameterization(self):
+        """Documents the bug: injecting OR 1=1 inflates the count."""
+        payload = "Pica pica' OR '1'='1"
+        count = get_todays_count_unsafe(self.con, payload)
+        self.assertGreater(count, 1, "Injection should inflate count (documents the bug)")
+
+    def test_sci_name_injection_blocked_with_parameterization(self):
+        payload = "Pica pica' OR '1'='1"
+        count = get_todays_count_safe(self.con, payload)
+        self.assertEqual(count, 0, "Injection payload should return zero matches")
+
+
+class TestDbPyGetSpeciesByDateInjection(unittest.TestCase):
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.con = make_db(os.path.join(self.tmpdir.name, "birds.db"))
+
+    def tearDown(self):
+        self.con.close()
+        self.tmpdir.cleanup()
+
+    def test_normal_date_filter_works(self):
+        rows = get_species_by_date_safe(self.con, "2024-01-01")
+        names = [r[0] for r in rows]
+        self.assertIn("Magpie", names)
+        self.assertNotIn("Robin", names)
+
+    def test_date_injection_works_without_parameterization(self):
+        payload = '2024-01-01" OR "1"="1'
+        rows = get_species_by_date_unsafe(self.con, payload)
+        names = [r[0] for r in rows]
+        self.assertIn("Robin", names, "Injection should bypass date filter (documents the bug)")
+
+    def test_date_injection_blocked_with_parameterization(self):
+        payload = '2024-01-01" OR "1"="1'
+        rows = get_species_by_date_safe(self.con, payload)
+        self.assertEqual(rows, [], "Injection payload should match no rows with parameterization")
+
+
 if __name__ == "__main__":
     unittest.main()

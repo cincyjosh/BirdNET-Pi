@@ -1,8 +1,8 @@
 <?php
 
 /* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
+$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
 
 error_reporting(E_ERROR);
 ini_set('display_errors',1);
@@ -637,8 +637,9 @@ echo "<table>
 
   if(isset($_GET['filename'])){
     $name = $_GET['filename'];
-    $statement2 = $db->prepare("SELECT * FROM detections where File_name == \"$name\" ORDER BY Date DESC, Time DESC");
+    $statement2 = $db->prepare("SELECT * FROM detections WHERE File_Name = :file_name ORDER BY Date DESC, Time DESC");
     ensure_db_ok($statement2);
+    $statement2->bindValue(':file_name', $name, SQLITE3_TEXT);
     $result2 = $statement2->execute();
     $results = $result2->fetchArray(SQLITE3_ASSOC);
     $sciname = $results['Sci_Name'];
