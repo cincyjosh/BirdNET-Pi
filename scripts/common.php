@@ -269,6 +269,9 @@ class ImageProvider {
   }
 
   protected function get_json($url) {
+    if (strncmp($url, 'https://', 8) !== 0 || !filter_var($url, FILTER_VALIDATE_URL)) {
+      return null;
+    }
     return json_decode(file_get_contents($url, false, $this->context), true);
   }
 
@@ -385,7 +388,7 @@ class Flickr extends ImageProvider {
   private function get_from_source($sci_name) {
     $engname = get_com_en_name($sci_name);
 
-    $flickrjson = json_decode(file_get_contents("https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=" . $this->flickr_api_key . "&text=" . str_replace(" ", "%20", $engname) . $this->comnameprefix . "&sort=relevance" . $this->args . "&per_page=5&media=photos&format=json&nojsoncallback=1"), true)["photos"]["photo"];
+    $flickrjson = $this->get_json("https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=" . $this->flickr_api_key . "&text=" . str_replace(" ", "%20", $engname) . $this->comnameprefix . "&sort=relevance" . $this->args . "&per_page=5&media=photos&format=json&nojsoncallback=1")["photos"]["photo"];
     // could be null!!
     // Find the first photo that is not blacklisted or is not the specific blacklisted id
     $photo = null;

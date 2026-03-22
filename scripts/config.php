@@ -40,11 +40,11 @@ if(isset($_GET['threshold'])) {
     die('Invalid threshold value');
   }
 
-  $command = "sudo -u $user ".$home."/BirdNET-Pi/birdnet/bin/python3 ".$home."/BirdNET-Pi/scripts/species.py --threshold $threshold 2>&1";
+  $command = "sudo -u $user ".$home."/BirdNET-Pi/birdnet/bin/python3 ".$home."/BirdNET-Pi/scripts/species.py --threshold ".escapeshellarg($threshold)." 2>&1";
 
   $output = shell_exec($command);
 
-  echo $output;
+  echo htmlspecialchars($output, ENT_QUOTES, 'UTF-8');
   die();
 }
 
@@ -106,9 +106,9 @@ if(isset($_GET["latitude"])){
   if(isset($timezone) && in_array($timezone, DateTimeZone::listIdentifiers())) {
     # dpkg-reconfigure tzdata is a pain to run non-interactively, so we do it in two steps instead
     # tzlocal.get_localzone() will fail if the Debian specific /etc/timezone is not in sync
-    shell_exec("sudo timedatectl set-timezone ".$timezone);
+    shell_exec("sudo timedatectl set-timezone ".escapeshellarg($timezone));
     if (file_exists('/etc/timezone')) {
-        shell_exec("echo ".$timezone." | sudo tee /etc/timezone > /dev/null");
+        shell_exec("echo ".escapeshellarg($timezone)." | sudo tee /etc/timezone > /dev/null");
     }
     $_SESSION['my_timezone'] = $timezone;
     date_default_timezone_set($timezone);
@@ -128,7 +128,7 @@ if(isset($_GET["latitude"])){
     // check if valid date and time
     $datetime = DateTime::createFromFormat('Y-m-d H:i', $_GET['date'] . ' ' . $_GET['time']);
     if ($datetime && $datetime->format('Y-m-d H:i') === $_GET['date'] . ' ' . $_GET['time']) {
-      exec("sudo date -s '".$_GET['date']." ".$_GET['time']."'");
+      exec("sudo date -s ".escapeshellarg($_GET['date']." ".$_GET['time']));
     }
   } else {
     // user checked 'use time from internet if available,' so make sure that's on
@@ -418,7 +418,7 @@ function runProcess() {
       <table class="settingstable"><tr><td>
       <h2>BirdWeather</h2>
       <label for="birdweather_id">BirdWeather Token: </label>
-      <input name="birdweather_id" type="text" value="<?php print($config['BIRDWEATHER_ID']);?>" /><br>
+      <input name="birdweather_id" type="text" value="<?php print(htmlspecialchars($config['BIRDWEATHER_ID'], ENT_QUOTES, 'UTF-8'));?>" /><br>
            <p><a href="https://app.birdweather.com" target="_blank">BirdWeather.com</a> is a weather map for bird sounds. 
         Stations around the world supply audio and video streams to BirdWeather where they are then analyzed by BirdNET 
         and compared to eBird Grid data. BirdWeather catalogues the bird audio and spectrogram visualizations so that you 
@@ -437,7 +437,7 @@ function runProcess() {
 tgram://{bot_token}/{chat_id}
 twitter://{ConsumerKey}/{ConsumerSecret}/{AccessToken}/{AccessSecret}
 https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
-..." style="vertical-align: top" class="testbtn" name="apprise_input" rows="5" type="text" ><?php print($apprise_config);?></textarea>
+..." style="vertical-align: top" class="testbtn" name="apprise_input" rows="5" type="text" ><?php print(htmlspecialchars($apprise_config, ENT_QUOTES, 'UTF-8'));?></textarea>
       <dl>
       <dt>$sciname</dt>
       <dd>Scientific Name</dd>
@@ -474,9 +474,9 @@ https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
       </dl>
       <p>Use the variables defined above to customize your notification title and body.</p>
       <label for="apprise_notification_title">Notification Title: </label>
-      <input name="apprise_notification_title" style="width: 100%" type="text" value="<?php print($config['APPRISE_NOTIFICATION_TITLE']);?>" /><br>
+      <input name="apprise_notification_title" style="width: 100%" type="text" value="<?php print(htmlspecialchars($config['APPRISE_NOTIFICATION_TITLE'], ENT_QUOTES, 'UTF-8'));?>" /><br>
       <label for="apprise_notification_body">Notification Body: </label>
-      <textarea class="testbtn" name="apprise_notification_body" rows="5" type="text" ><?php print($apprise_notification_body);?></textarea>
+      <textarea class="testbtn" name="apprise_notification_body" rows="5" type="text" ><?php print(htmlspecialchars($apprise_notification_body, ENT_QUOTES, 'UTF-8'));?></textarea>
       <input type="checkbox" name="apprise_notify_new_species" <?php if($config['APPRISE_NOTIFY_NEW_SPECIES'] == 1 && filesize($home."/BirdNET-Pi/apprise.txt") != 0) { echo "checked"; };?> >
       <label for="apprise_notify_new_species">Notify each new infrequent species detection (<5 visits per week)</label><br>
       <input type="checkbox" name="apprise_notify_new_species_each_day" <?php if($config['APPRISE_NOTIFY_NEW_SPECIES_EACH_DAY'] == 1 && filesize($home."/BirdNET-Pi/apprise.txt") != 0) { echo "checked"; };?> >

@@ -421,7 +421,7 @@ if(!isset($_GET['species']) && !isset($_GET['filename'])){
       $date = $results['Date'];
       if(realpath($home."/BirdSongs/Extracted/By_Date/".$date) !== false){
         echo "<td>
-          <button action=\"submit\" name=\"date\" value=\"$date\">".($date == date('Y-m-d') ? "Today" : $date)."</button></td></tr>";}}
+          <button action=\"submit\" name=\"date\" value=\"".htmlspecialchars($date, ENT_QUOTES, 'UTF-8')."\">".($date == date('Y-m-d') ? "Today" : htmlspecialchars($date, ENT_QUOTES, 'UTF-8'))."</button></td></tr>";}}
 
           #By Species
   } elseif($view == "byspecies") {
@@ -449,7 +449,7 @@ if(!isset($_GET['species']) && !isset($_GET['filename'])){
         if ($index < count($birds)) {
           ?>
           <td class="spec">
-              <button type="submit" name="species" value="<?php echo $birds[$index];?>"><?php echo $values[$index];?></button>
+              <button type="submit" name="species" value="<?php echo htmlspecialchars($birds[$index], ENT_QUOTES, 'UTF-8');?>"><?php echo htmlspecialchars($values[$index], ENT_QUOTES, 'UTF-8');?></button>
           </td>
           <?php
         } else {
@@ -487,7 +487,7 @@ for ($row = 0; $row < $num_rows; $row++) {
     if ($index < count($birds)) {
       ?>
       <td class="spec">
-          <button type="submit" name="species" value="<?php echo $birds[$index];?>"><?php echo $values[$index];?></button>
+          <button type="submit" name="species" value="<?php echo htmlspecialchars($birds[$index], ENT_QUOTES, 'UTF-8');?>"><?php echo htmlspecialchars($values[$index], ENT_QUOTES, 'UTF-8');?></button>
       </td>
       <?php
     } else {
@@ -550,10 +550,10 @@ $sciname = $name;
 $info_url = get_info_url($sciname);
 $url = $info_url['URL'];
 echo "<table>
-  <tr><th>$com_name<br><span style=\"font-weight:normal;\">
-  <i>$sciname</i></span><br>
-    <a href=\"$url\" target=\"_blank\"><img title=\"$url_title\" src=\"images/info.png\" width=\"20\"></a>
-    <a href=\"https://wikipedia.org/wiki/$sciname\" target=\"_blank\"><img title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a>
+  <tr><th>".htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')."<br><span style=\"font-weight:normal;\">
+  <i>".htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8')."</i></span><br>
+    <a href=\"".htmlspecialchars($url, ENT_QUOTES, 'UTF-8')."\" target=\"_blank\"><img title=\"".htmlspecialchars($url_title, ENT_QUOTES, 'UTF-8')."\" src=\"images/info.png\" width=\"20\"></a>
+    <a href=\"https://wikipedia.org/wiki/".htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8')."\" target=\"_blank\"><img title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a>
   </th></tr>";
   $iter=0;
   while($results=$result2->fetchArray(SQLITE3_ASSOC))
@@ -584,9 +584,9 @@ echo "<table>
     }
 
     if($iter < 100){
-      $imageelem = "<div class='custom-audio-player' data-audio-src=\"$filename\" data-image-src=\"$filename_png\"></div>";
+      $imageelem = "<div class='custom-audio-player' data-audio-src=\"".htmlspecialchars($filename, ENT_QUOTES, 'UTF-8')."\" data-image-src=\"".htmlspecialchars($filename_png, ENT_QUOTES, 'UTF-8')."\"></div>";
     } else {
-      $imageelem = "<a href=\"$filename\"><img src=\"$filename_png\"></a>";
+      $imageelem = "<a href=\"".htmlspecialchars($filename, ENT_QUOTES, 'UTF-8')."\"><img src=\"".htmlspecialchars($filename_png, ENT_QUOTES, 'UTF-8')."\"></a>";
     }
 
       if(!in_array($filename_formatted, $disk_check_exclude_arr)) {
@@ -610,13 +610,14 @@ echo "<table>
         $shiftAction = "shift";
       }
 
+      $esc_fn = htmlspecialchars($filename_formatted, ENT_QUOTES, 'UTF-8');
       echo "<tr>
-  <td class=\"relative\"> 
+  <td class=\"relative\">
 
-<img style='cursor:pointer;right:120px' src='images/delete.svg' onclick='deleteDetection(\"".$filename_formatted."\")' class=\"copyimage\" width=25 title='Delete Detection'> 
-<img style='cursor:pointer;right:85px' src='images/bird.svg' onclick='changeDetection(\"".$filename_formatted."\")' class=\"copyimage\" width=25 title='Change Detection'> 
-<img style='cursor:pointer;right:45px' onclick='toggleLock(\"".$filename_formatted."\",\"".$type."\", this)' class=\"copyimage\" width=25 title=\"".$title."\" src=\"".$imageicon."\"> 
-<img style='cursor:pointer' onclick='toggleShiftFreq(\"".$filename_formatted."\",\"".$shiftAction."\", this)' class=\"copyimage\" width=25 title=\"".$shiftTitle."\" src=\"".$shiftImageIcon."\"> $date $time<br>$values<br>
+<img style='cursor:pointer;right:120px' src='images/delete.svg' onclick='deleteDetection(\"".$esc_fn."\")' class=\"copyimage\" width=25 title='Delete Detection'>
+<img style='cursor:pointer;right:85px' src='images/bird.svg' onclick='changeDetection(\"".$esc_fn."\")' class=\"copyimage\" width=25 title='Change Detection'>
+<img style='cursor:pointer;right:45px' onclick='toggleLock(\"".$esc_fn."\",\"".htmlspecialchars($type, ENT_QUOTES, 'UTF-8')."\", this)' class=\"copyimage\" width=25 title=\"".htmlspecialchars($title, ENT_QUOTES, 'UTF-8')."\" src=\"".htmlspecialchars($imageicon, ENT_QUOTES, 'UTF-8')."\">
+<img style='cursor:pointer' onclick='toggleShiftFreq(\"".$esc_fn."\",\"".htmlspecialchars($shiftAction, ENT_QUOTES, 'UTF-8')."\", this)' class=\"copyimage\" width=25 title=\"".htmlspecialchars($shiftTitle, ENT_QUOTES, 'UTF-8')."\" src=\"".htmlspecialchars($shiftImageIcon, ENT_QUOTES, 'UTF-8')."\"> ".htmlspecialchars($date, ENT_QUOTES, 'UTF-8')." ".htmlspecialchars($time, ENT_QUOTES, 'UTF-8')."<br>$values<br>
 
         ".$imageelem."
         </td>
@@ -656,10 +657,10 @@ echo "<table>
     $info_url = get_info_url($sciname);
     $url = $info_url['URL'];
     echo "<table>
-      <tr><th>$name<br>
-      <i>$sciname</i><br>
-          <a href=\"$url\" target=\"_blank\"><img title=\"$url_title\" src=\"images/info.png\" width=\"20\"></a>
-          <a href=\"https://wikipedia.org/wiki/$sciname\" target=\"_blank\"><img title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a>
+      <tr><th>".htmlspecialchars($name, ENT_QUOTES, 'UTF-8')."<br>
+      <i>".htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8')."</i><br>
+          <a href=\"".htmlspecialchars($url, ENT_QUOTES, 'UTF-8')."\" target=\"_blank\"><img title=\"".htmlspecialchars($url_title, ENT_QUOTES, 'UTF-8')."\" src=\"images/info.png\" width=\"20\"></a>
+          <a href=\"https://wikipedia.org/wiki/".htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8')."\" target=\"_blank\"><img title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a>
       </th></tr>";
       while($results=$result2->fetchArray(SQLITE3_ASSOC))
       {
@@ -704,15 +705,16 @@ echo "<table>
         $shiftAction = "shift";
       }
 
+          $esc_fn2 = htmlspecialchars($filename_formatted, ENT_QUOTES, 'UTF-8');
           echo "<tr>
-      <td class=\"relative\"> 
+      <td class=\"relative\">
 
-<img style='cursor:pointer;right:120px' src='images/delete.svg' onclick='deleteDetection(\"".$filename_formatted."\", true)' class=\"copyimage\" width=25 title='Delete Detection'> 
-<img style='cursor:pointer;right:85px' src='images/bird.svg' onclick='changeDetection(\"".$filename_formatted."\")' class=\"copyimage\" width=25 title='Change Detection'> 
-<img style='cursor:pointer;right:45px' onclick='toggleLock(\"".$filename_formatted."\",\"".$type."\", this)' class=\"copyimage\" width=25 title=\"".$title."\" src=\"".$imageicon."\"> 
-<img style='cursor:pointer' onclick='toggleShiftFreq(\"".$filename_formatted."\",\"".$shiftAction."\", this)' class=\"copyimage\" width=25 title=\"".$shiftTitle."\" src=\"".$shiftImageIcon."\">$date $time<br>$values<br>
+<img style='cursor:pointer;right:120px' src='images/delete.svg' onclick='deleteDetection(\"".$esc_fn2."\", true)' class=\"copyimage\" width=25 title='Delete Detection'>
+<img style='cursor:pointer;right:85px' src='images/bird.svg' onclick='changeDetection(\"".$esc_fn2."\")' class=\"copyimage\" width=25 title='Change Detection'>
+<img style='cursor:pointer;right:45px' onclick='toggleLock(\"".$esc_fn2."\",\"".htmlspecialchars($type, ENT_QUOTES, 'UTF-8')."\", this)' class=\"copyimage\" width=25 title=\"".htmlspecialchars($title, ENT_QUOTES, 'UTF-8')."\" src=\"".htmlspecialchars($imageicon, ENT_QUOTES, 'UTF-8')."\">
+<img style='cursor:pointer' onclick='toggleShiftFreq(\"".$esc_fn2."\",\"".htmlspecialchars($shiftAction, ENT_QUOTES, 'UTF-8')."\", this)' class=\"copyimage\" width=25 title=\"".htmlspecialchars($shiftTitle, ENT_QUOTES, 'UTF-8')."\" src=\"".htmlspecialchars($shiftImageIcon, ENT_QUOTES, 'UTF-8')."\">".htmlspecialchars($date, ENT_QUOTES, 'UTF-8')." ".htmlspecialchars($time, ENT_QUOTES, 'UTF-8')."<br>$values<br>
 
-<div class='custom-audio-player' data-audio-src='$filename' data-image-src='$filename_png'></div>
+<div class='custom-audio-player' data-audio-src='".htmlspecialchars($filename, ENT_QUOTES, 'UTF-8')."' data-image-src='".htmlspecialchars($filename_png, ENT_QUOTES, 'UTF-8')."'></div>
 </td></tr>";
 
       }echo "</table>";}

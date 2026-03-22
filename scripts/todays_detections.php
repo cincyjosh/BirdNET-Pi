@@ -177,7 +177,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
     $iterations++;
 
     $comname = preg_replace('/ /', '_', $todaytable['Com_Name']);
-    $comnamegraph = str_replace("'", "\'", $todaytable['Com_Name']);
+    $comnamegraph = htmlspecialchars(str_replace("'", "\\'", $todaytable['Com_Name']), ENT_COMPAT, 'UTF-8');
     $comname = preg_replace('/\'/', '', $comname);
     $filename = "/By_Date/".date('Y-m-d')."/".$comname."/".$todaytable['File_Name'];
     $filename_formatted = $todaytable['Date']."/".$comname."/".$todaytable['File_Name'];
@@ -215,27 +215,27 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
         <?php if(isset($_GET['display_limit']) && is_numeric($_GET['display_limit'])){ ?>
           <tr class="relative" id="<?php echo $iterations; ?>">
           <td class="relative">
-            <img style='cursor:pointer;right:45px' src='images/delete.svg' onclick='deleteDetection("<?php echo $filename_formatted; ?>")' class="copyimage" width=25 title='Delete Detection'>
-            <a target="_blank" href="index.php?filename=<?php echo $todaytable['File_Name']; ?>"><img class="copyimage" title="Open in new tab" width=25 src="images/copy.png"></a>
-        
-            
+            <img style='cursor:pointer;right:45px' src='images/delete.svg' onclick='deleteDetection("<?php echo htmlspecialchars($filename_formatted, ENT_QUOTES, 'UTF-8'); ?>")' class="copyimage" width=25 title='Delete Detection'>
+            <a target="_blank" href="index.php?filename=<?php echo htmlspecialchars($todaytable['File_Name'], ENT_QUOTES, 'UTF-8'); ?>"><img class="copyimage" title="Open in new tab" width=25 src="images/copy.png"></a>
+
+
           <div class="centered_image_container">
             <?php if(!empty($config["IMAGE_PROVIDER"]) && strlen($image[2]) > 0) { ?>
-              <img onclick='setModalText(<?php echo $iterations; ?>,"<?php echo urlencode($image[2]); ?>", "<?php echo $image[3]; ?>", "<?php echo $image[4]; ?>", "<?php echo $image[1]; ?>", "<?php echo $image[5]; ?>")' src="<?php echo $image[1]; ?>" class="img1">
+              <img onclick='setModalText(<?php echo $iterations; ?>,"<?php echo urlencode($image[2]); ?>", "<?php echo htmlspecialchars($image[3], ENT_QUOTES, 'UTF-8'); ?>", "<?php echo htmlspecialchars($image[4], ENT_QUOTES, 'UTF-8'); ?>", "<?php echo htmlspecialchars($image[1], ENT_QUOTES, 'UTF-8'); ?>", "<?php echo htmlspecialchars($image[5], ENT_QUOTES, 'UTF-8'); ?>")' src="<?php echo htmlspecialchars($image[1], ENT_QUOTES, 'UTF-8'); ?>" class="img1">
             <?php } ?>
 
-            <?php echo $todaytable['Time'];?><br>   
-          <b><a class="a2" href="<?php echo $url;?>" target="top"><?php echo $todaytable['Com_Name'];?></a></b><br>
-          <i><?php echo $todaytable['Sci_Name'];?></i>
-          <a href="<?php echo $url;?>" target="_blank"><img style="cursor:pointer;float:unset;display:inline" title=<?php echo $url_title;?> src="images/info.png" width="20"></a>
-          <a href="https://wikipedia.org/wiki/<?php echo $sciname;?>" target="_blank"><img style=";cursor:pointer;float:unset;display:inline" title="Wikipedia" src="images/wiki.png" width="20"></a>
+            <?php echo htmlspecialchars($todaytable['Time'], ENT_QUOTES, 'UTF-8');?><br>
+          <b><a class="a2" href="<?php echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8');?>" target="top"><?php echo htmlspecialchars($todaytable['Com_Name'], ENT_QUOTES, 'UTF-8');?></a></b><br>
+          <i><?php echo htmlspecialchars($todaytable['Sci_Name'], ENT_QUOTES, 'UTF-8');?></i>
+          <a href="<?php echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8');?>" target="_blank"><img style="cursor:pointer;float:unset;display:inline" title="<?php echo htmlspecialchars($url_title, ENT_QUOTES, 'UTF-8');?>" src="images/info.png" width="20"></a>
+          <a href="https://wikipedia.org/wiki/<?php echo htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8');?>" target="_blank"><img style=";cursor:pointer;float:unset;display:inline" title="Wikipedia" src="images/wiki.png" width="20"></a>
           <img style=";cursor:pointer;float:unset;display:inline" title="View species stats" onclick="generateMiniGraph(this, '<?php echo $comnamegraph; ?>')" width=20 src="images/chart.svg"><br>
           <b>Confidence:</b> <?php echo round((float)round($todaytable['Confidence'],2) * 100 ) . '%';?><br></div><br>
-          <div class='custom-audio-player' data-audio-src="<?php echo $filename; ?>" data-image-src="<?php echo $filename.".png";?>"></div>
+          <div class='custom-audio-player' data-audio-src="<?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8'); ?>" data-image-src="<?php echo htmlspecialchars($filename.".png", ENT_QUOTES, 'UTF-8');?>"></div>
           </td>
         <?php } else { //legacy mode ?>
           <tr class="relative" id="<?php echo $iterations; ?>">
-          <td><?php if($_GET['kiosk'] == true) { echo relativeTime(strtotime($todaytable['Time'])); } else {echo $todaytable['Time'];}?><br></td>
+          <td><?php if($_GET['kiosk'] == true) { echo htmlspecialchars(relativeTime(strtotime($todaytable['Time'])), ENT_QUOTES, 'UTF-8'); } else { echo htmlspecialchars($todaytable['Time'], ENT_QUOTES, 'UTF-8'); }?><br></td>
           <td id="recent_detection_middle_td">
           <div>
             <div>
@@ -246,15 +246,15 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
             <div>
             <form action="" method="GET">
                     <input type="hidden" name="view" value="Species Stats">
-          <button class="a2" type="submit" name="species" value="<?php echo $todaytable['Com_Name'];?>"><?php echo $todaytable['Com_Name'];?></button>
+          <button class="a2" type="submit" name="species" value="<?php echo htmlspecialchars($todaytable['Com_Name'], ENT_QUOTES, 'UTF-8');?>"><?php echo htmlspecialchars($todaytable['Com_Name'], ENT_QUOTES, 'UTF-8');?></button>
 	            <br><i>
-          <?php echo $todaytable['Sci_Name'];?>
+          <?php echo htmlspecialchars($todaytable['Sci_Name'], ENT_QUOTES, 'UTF-8');?>
 	                <br>
-	                    <a href="<?php echo $url;?>" target="_blank"><img style="height: 1em;cursor:pointer;float:unset;display:inline" title=<?php echo $url_title;?> src="images/info.png" width="25"></a>
+	                    <a href="<?php echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8');?>" target="_blank"><img style="height: 1em;cursor:pointer;float:unset;display:inline" title="<?php echo htmlspecialchars($url_title, ENT_QUOTES, 'UTF-8');?>" src="images/info.png" width="25"></a>
       	    <?php if($_GET['kiosk'] == false){?>
-	              <a href="https://wikipedia.org/wiki/<?php echo $sciname;?>" target="_blank"><img style="height: 1em;cursor:pointer;float:unset;display:inline" title="Wikipedia" src="images/wiki.png" width="25"></a>
+	              <a href="https://wikipedia.org/wiki/<?php echo htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8');?>" target="_blank"><img style="height: 1em;cursor:pointer;float:unset;display:inline" title="Wikipedia" src="images/wiki.png" width="25"></a>
 	                    <img style="height: 1em;cursor:pointer;float:unset;display:inline" title="View species stats" onclick="generateMiniGraph(this, '<?php echo $comnamegraph; ?>')" width=25 src="images/chart.svg">
-	                    <a target="_blank" href="index.php?filename=<?php echo $todaytable['File_Name']; ?>"><img style="height: 1em;cursor:pointer;float:unset;display:inline" class="copyimage-mobile" title="Open in new tab" width=16 src="images/copy.png"></a>
+	                    <a target="_blank" href="index.php?filename=<?php echo htmlspecialchars($todaytable['File_Name'], ENT_QUOTES, 'UTF-8'); ?>"><img style="height: 1em;cursor:pointer;float:unset;display:inline" class="copyimage-mobile" title="Open in new tab" width=16 src="images/copy.png"></a>
           	    <?php } ?></i>
 	                <br>
 	            </div>
@@ -263,7 +263,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
           </td>
           <td><?php if(!isset($_GET['mobile'])) { echo '<b>Confidence:</b>';} echo round((float)round($todaytable['Confidence'],2) * 100 ) . '%';?><br></td>
           <?php if(!isset($_GET['mobile'])) { ?>
-              <td style="min-width:180px"><audio controls preload="none" src="<?php echo $filename;?>"></audio></td>
+              <td style="min-width:180px"><audio controls preload="none" src="<?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');?>"></audio></td>
           <?php } ?>
         <?php } ?>
   <?php }?>
@@ -295,20 +295,20 @@ if(isset($_GET['today_stats'])) {
   <th>Species Total</th>
   <th>Species Today</th>
       </tr>
-      <tr><td><?php echo $totalcount;?></td>
+      <tr><td><?php echo (int)$totalcount;?></td>
 	      <td><form action="" method="GET"><input type="hidden" name="view" value="Recordings">
-            <?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo $todaycount;?></button>
-            <?php } else { echo $todaycount; } ?>
+            <?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo (int)$todaycount;?></button>
+            <?php } else { echo (int)$todaycount; } ?>
           </form></td>
-        <td><?php echo $hourcount;?></td>
+        <td><?php echo (int)$hourcount;?></td>
         <td><form action="" method="GET">
-            <?php if($kiosk == false){?><button type="submit" name="view" value="Species Stats"><?php echo $totalspeciestally;?></button>
-            <?php } else { echo $totalspeciestally; } ?>
+            <?php if($kiosk == false){?><button type="submit" name="view" value="Species Stats"><?php echo (int)$totalspeciestally;?></button>
+            <?php } else { echo (int)$totalspeciestally; } ?>
           </form></td>
         <td><form action="" method="GET">
             <input type="hidden" name="view" value="Recordings">
-            <?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo $todayspeciestally;?></button>
-            <?php } else { echo $todayspeciestally; } ?>
+            <?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo (int)$todayspeciestally;?></button>
+            <?php } else { echo (int)$todayspeciestally; } ?>
           </form></td>
       </tr>
     </table>
@@ -453,11 +453,11 @@ if (get_included_files()[0] === __FILE__) {
   <th>Species Today</th>
       </tr>
       <tr>
-      <td><?php echo $totalcount;?></td>
-      <td><input type="hidden" name="view" value="Recordings"><?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo $todaycount;?></button><?php } else { echo $todaycount; }?></td>
-      <td><?php echo $hourcount;?></td>
-      <td><?php if($kiosk == false){?><button type="submit" name="view" value="Species Stats"><?php echo $totalspeciestally;?></button><?php }else { echo $totalspeciestally; }?></td>
-      <td><input type="hidden" name="view" value="Recordings"><?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo $todayspeciestally;?></button><?php } else { echo $todayspeciestally; }?></td>
+      <td><?php echo (int)$totalcount;?></td>
+      <td><input type="hidden" name="view" value="Recordings"><?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo (int)$todaycount;?></button><?php } else { echo (int)$todaycount; }?></td>
+      <td><?php echo (int)$hourcount;?></td>
+      <td><?php if($kiosk == false){?><button type="submit" name="view" value="Species Stats"><?php echo (int)$totalspeciestally;?></button><?php }else { echo (int)$totalspeciestally; }?></td>
+      <td><input type="hidden" name="view" value="Recordings"><?php if($kiosk == false){?><button type="submit" name="date" value="<?php echo date('Y-m-d');?>"><?php echo (int)$todayspeciestally;?></button><?php } else { echo (int)$todayspeciestally; }?></td>
       </tr>
     </table></form></div>
 
@@ -514,7 +514,7 @@ document.getElementById("searchterm").onkeydown = (function(e) {
 
 function switchViews(element) {
   if(searchterm == ""){
-    document.getElementById("detections_table").innerHTML = "<h3>Loading <?php echo $todaycount; ?> detections...</h3>";
+    document.getElementById("detections_table").innerHTML = "<h3>Loading <?php echo (int)$todaycount; ?> detections...</h3>";
   } else {
     document.getElementById("detections_table").innerHTML = "<h3>Loading...</h3>";
   }

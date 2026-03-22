@@ -35,15 +35,21 @@ while ($detection = $result1->fetchArray(SQLITE3_ASSOC)) {
   $scount = $detection["COUNT(*)"];
 
   # previous week
-  $statement2 = $db->prepare('SELECT COUNT(*) FROM detections WHERE Sci_Name == "' . $detection["Sci_Name"] . '" AND Date BETWEEN "' . date("Y-m-d", $startdate - (7 * 86400)) . '" AND "' . date("Y-m-d", $enddate - (7 * 86400)) . '"');
+  $statement2 = $db->prepare('SELECT COUNT(*) FROM detections WHERE Sci_Name = :sci_name AND Date BETWEEN :prev_startdate AND :prev_enddate');
   ensure_db_ok($statement2);
+  $statement2->bindValue(':sci_name', $detection["Sci_Name"], SQLITE3_TEXT);
+  $statement2->bindValue(':prev_startdate', date("Y-m-d", $startdate - (7 * 86400)), SQLITE3_TEXT);
+  $statement2->bindValue(':prev_enddate', date("Y-m-d", $enddate - (7 * 86400)), SQLITE3_TEXT);
   $result2 = $statement2->execute();
   $priorweekcount = $result2->fetchArray(SQLITE3_ASSOC)['COUNT(*)'];
   $percentagediff = safe_percentage($scount, $priorweekcount);
 
   # is_first_seen?
-  $statement3 = $db->prepare('SELECT COUNT(*) FROM detections WHERE Sci_Name == "'.$sci_name.'" AND Date NOT BETWEEN "'.date("Y-m-d",$startdate).'" AND "'.date("Y-m-d",$enddate).'"');
+  $statement3 = $db->prepare('SELECT COUNT(*) FROM detections WHERE Sci_Name = :sci_name AND Date NOT BETWEEN :startdate AND :enddate');
   ensure_db_ok($statement3);
+  $statement3->bindValue(':sci_name', $sci_name, SQLITE3_TEXT);
+  $statement3->bindValue(':startdate', date("Y-m-d", $startdate), SQLITE3_TEXT);
+  $statement3->bindValue(':enddate', date("Y-m-d", $enddate), SQLITE3_TEXT);
   $result3 = $statement3->execute();
   $totalcount = $result3->fetchArray(SQLITE3_ASSOC)['COUNT(*)'];
   $is_first_seen = $totalcount === 0;
@@ -89,8 +95,8 @@ if(isset($_GET['ascii'])) {
 
 	echo "# BirdNET-Pi: Week ".date('W', $enddate)." Report\n";
 
-	echo "Total Detections: <b>".$totalcount."</b> (".$percentagedifftotal.")<br>";
-	echo "Unique Species Detected: <b>".$totalspeciestally."</b> (".$percentagedifftotaldistinctspecies.")<br><br>";
+	echo "Total Detections: <b>".(int)$totalcount."</b> (".$percentagedifftotal.")<br>";
+	echo "Unique Species Detected: <b>".(int)$totalspeciestally."</b> (".$percentagedifftotaldistinctspecies.")<br><br>";
 
 	echo "= <b>Top 10 Species</b> =<br>";
 
@@ -107,7 +113,7 @@ if(isset($_GET['ascii'])) {
               $percentagediff = "<span style='color:red;font-size:small'>-".abs($percentagediff)."%</span>";
       }
 
-      echo $com_name." - ".$count." (".$percentagediff.")<br>";
+      echo htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')." - ".$count." (".$percentagediff.")<br>";
 		}
 	}
 
@@ -118,7 +124,7 @@ if(isset($_GET['ascii'])) {
 	{
 		if($stats["is_first_seen"]) {
 			$newspeciescount++;
-			echo $com_name." - ".$scount."<br>";
+			echo htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')." - ".$scount."<br>";
 		}
 	}
 	if($newspeciescount == 0) {
@@ -164,7 +170,7 @@ echo "<h1>Week ".date('W', $enddate)." Report</h1>".date('F jS, Y',$startdate)."
 				$percentagediff = "<span style='color:red;font-size:small'>-".abs($percentagediff)."%</span>";
 			}
 
-			echo "<tr><td>".$com_name."<br><small style=\"font-size:small\">".$count." (".$percentagediff.")</small><br></td></tr>";
+			echo "<tr><td>".htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')."<br><small style=\"font-size:small\">".$count." (".$percentagediff.")</small><br></td></tr>";
 		}
 	}
 	?>
@@ -186,7 +192,7 @@ echo "<h1>Week ".date('W', $enddate)." Report</h1>".date('F jS, Y',$startdate)."
 	{
 		if($stats["is_first_seen"]) {
 			$newspeciescount++;
-			echo "<tr><td>".$com_name."<br><small style=\"font-size:small\">".$scount."</small><br></td></tr>";
+			echo "<tr><td>".htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')."<br><small style=\"font-size:small\">".$scount."</small><br></td></tr>";
 		}
 	}
 	if($newspeciescount == 0) {
