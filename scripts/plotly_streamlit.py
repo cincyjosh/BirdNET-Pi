@@ -489,7 +489,8 @@ else:
                              showscale=False,
                              text=labels, texttemplate="%{text}", colorscale='Blugrn'
                              ), row=1, col=2)
-    fig.update_yaxes(visible=True, autorange="reversed", ticks="inside", tickson="boundaries", ticklen=10000,
+    tick_len = 10000 if len(freq_order) > 1 else 5
+    fig.update_yaxes(visible=True, autorange="reversed", ticks="inside", tickson="boundaries", ticklen=tick_len,
                      showgrid=True)
     fig.update_layout(xaxis_ticks="inside",
                       margin=dict(l=0, r=0, t=50, b=0))
