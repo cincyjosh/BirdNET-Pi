@@ -59,4 +59,17 @@ CURRENT_TIMEZONE=$(timedatectl show --value --property=Timezone)
 
 ./install_language_label.sh || exit 1
 
+echo ""
+echo "================================================================"
+echo "  BirdNET-Pi installation complete!"
+echo ""
+echo "  Web interface password (username: birdnet):"
+echo "  ${CADDY_PWD}"
+echo ""
+echo "  Save this password — you will need it to access the Tools,"
+echo "  Settings, and Live Audio Stream pages."
+echo "  You can change it later in Tools > Settings > Advanced Settings."
+echo "================================================================"
+echo ""
+
 exit 0

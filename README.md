@@ -70,7 +70,7 @@ Please note that installing BirdNET-Pi on top of other servers is not supported.
 
 The system can be installed with:
 ```
-curl -s https://raw.githubusercontent.com/Nachtzuster/BirdNET-Pi/main/newinstaller.sh | bash
+curl -s https://raw.githubusercontent.com/cincyjosh/BirdNET-Pi/main/newinstaller.sh | bash
 ```
 The installer takes care of any and all necessary updates, so you can run that as the very first command upon the first boot, if you'd like.
 
@@ -78,8 +78,8 @@ The installation creates a log in `$HOME/installation-$(date "+%F").txt`.
 ## Access
 The BirdNET-Pi can be accessed from any web browser on the same network:
 - http://birdnetpi.local OR your Pi's IP address
-- Default Basic Authentication Username: birdnet
-- Password is empty by default. Set this in "Tools" > "Settings" > "Advanced Settings"
+- Basic Authentication Username: `birdnet`
+- Password: auto-generated during installation and printed at the end of the install log (`~/installation-<date>.txt`). You can change it in "Tools" > "Settings" > "Advanced Settings".
 
 Please take a look at the [wiki](https://github.com/mcguirepr89/BirdNET-Pi/wiki) and [discussions](https://github.com/mcguirepr89/BirdNET-Pi/discussions) for information on
 - [BirdNET-Pi's Deep Convolutional Neural Network(s)](https://github.com/mcguirepr89/BirdNET-Pi/wiki/BirdNET-Pi:-some-theory-on-classification-&-some-practical-hints)
@@ -135,7 +135,7 @@ Please note that upgrading your underlying OS to Bookworm is not going to work. 
 Run these commands to migrate to this repo:
 ```
 git remote remove origin
-git remote add origin https://github.com/Nachtzuster/BirdNET-Pi.git
+git remote add origin https://github.com/cincyjosh/BirdNET-Pi.git
 ./scripts/update_birdnet.sh
 ```
 ## Troubleshooting and Ideas
