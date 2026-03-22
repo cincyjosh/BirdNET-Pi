@@ -47,9 +47,12 @@ if(isset($_GET['excludefile'])) {
   if(!file_exists($home."/BirdNET-Pi/scripts/disk_check_exclude.txt")) {
     file_put_contents($home."/BirdNET-Pi/scripts/disk_check_exclude.txt", "##start\n##end\n");
   }
+  // Strip newlines to prevent file structure injection
+  $excludefile_safe = str_replace(["\r", "\n"], '', $_GET['excludefile']);
+  if (empty($excludefile_safe)) { echo "Error"; die(); }
   if(isset($_GET['exclude_add'])) {
     $myfile = fopen($home."/BirdNET-Pi/scripts/disk_check_exclude.txt", "a") or die("Unable to open file!");
-    $txt = $_GET['excludefile'];
+    $txt = $excludefile_safe;
     fwrite($myfile, $txt."\n");
     fwrite($myfile, $txt.".png\n");
     fclose($myfile);
@@ -57,7 +60,7 @@ if(isset($_GET['excludefile'])) {
     die();
   } else {
     $lines  = file($home."/BirdNET-Pi/scripts/disk_check_exclude.txt");
-    $search = $_GET['excludefile'];
+    $search = $excludefile_safe;
 
     $result = '';
     foreach($lines as $line) {
