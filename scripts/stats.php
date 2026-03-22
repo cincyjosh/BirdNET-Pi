@@ -57,6 +57,7 @@ if (get_included_files()[0] === __FILE__) {
   <?php
   $birds = array();
   $values = array();
+  $all_results = array();
 
   while($results=$result->fetchArray(SQLITE3_ASSOC))
   {
@@ -65,6 +66,7 @@ if (get_included_files()[0] === __FILE__) {
     $filename = "/By_Date/".$results['Date']."/".$comname."/".$results['File_Name'];
     $birds[] = $results['Com_Name'];
     $values[] = get_label($results, $_GET['sort']);
+    $all_results[] = $results;
   }
 
   if(count($birds) > 45) {
@@ -194,7 +196,7 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
     <table>
 <?php
 $excludelines = [];
-while($results=$result->fetchArray(SQLITE3_ASSOC))
+foreach($all_results as $results)
 {
 $comname = preg_replace('/ /', '_', $results['Com_Name']);
 $comname = preg_replace('/\'/', '', $comname);

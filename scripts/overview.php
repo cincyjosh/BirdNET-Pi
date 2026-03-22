@@ -58,6 +58,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true" && isse
   $image_provider = null;
 
   // hopefully one of the 5 most recent detections has an image that is valid, we'll use that one as the most recent detection until the newer ones get their images created
+  $images_index = array_column($_SESSION['images'], 0);
   while($mostrecent = $result4->fetchArray(SQLITE3_ASSOC)) {
     $comname = preg_replace('/ /', '_', $mostrecent['Com_Name']);
     $sciname = preg_replace('/ /', '_', $mostrecent['Sci_Name']);
@@ -85,12 +86,13 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true" && isse
         }
 
         // if we already searched for this species before, use the previous image rather than doing an unneccesary api call
-        $key = array_search($comname, array_column($_SESSION['images'], 0));
+        $key = array_search($comname, $images_index);
         if ($key !== false) {
           $image = $_SESSION['images'][$key];
         } else {
           $cached_image = $image_provider->get_image($mostrecent['Sci_Name']);
           array_push($_SESSION["images"], array($comname, $cached_image["image_url"], $cached_image["title"], $cached_image["photos_url"], $cached_image["author_url"], $cached_image["license_url"]));
+          $images_index[] = $comname;
           $image = $_SESSION['images'][count($_SESSION['images']) - 1];
         }
       }
@@ -343,6 +345,7 @@ function display_species($species_list, $title, $show_last_seen=false) {
                 <table>
                     <?php
                     $iterations = 0;
+                    $images_index = array_column($_SESSION['images'], 0);
                     foreach($species_list as $todaytable):
                         $iterations++;
                         $comname = preg_replace('/ /', '_', $todaytable['Com_Name']);
@@ -372,13 +375,14 @@ function display_species($species_list, $title, $show_last_seen=false) {
                           }
 
                             // Check if the image has been cached in the session
-                            $key = array_search($comname, array_column($_SESSION['images'], 0));
+                            $key = array_search($comname, $images_index);
                             if ($key !== false) {
                                 $image = $_SESSION['images'][$key];
                             } else {
                                 // Retrieve the image from Flickr API and cache it
                                 $cached_image = $image_provider->get_image($todaytable['Sci_Name']);
                                 array_push($_SESSION["images"], array($comname, $cached_image["image_url"], $cached_image["title"], $cached_image["photos_url"], $cached_image["author_url"], $cached_image["license_url"]));
+                                $images_index[] = $comname;
                                 $image = $_SESSION['images'][count($_SESSION['images']) - 1];
                             }
                             $image_url = $image[1] ?? ""; // Get the image URL if available
