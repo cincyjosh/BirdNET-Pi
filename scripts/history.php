@@ -159,7 +159,7 @@ echo "<hr>";
 if (file_exists('./Charts/'.$chart2)) {
   echo "<img src=\"/Charts/$chart2?nocache=$time\">";
 } else {
-  echo "<p>No Charts For $theDate</p>";
+  echo "<p>Bottom 10 chart not available &mdash; fewer than 10 species detected on $theDate</p>";
 }
 echo "</div>";
 if (get_included_files()[0] === __FILE__) {
