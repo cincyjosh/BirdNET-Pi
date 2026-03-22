@@ -211,8 +211,6 @@ def main(daemon, sleep_m):
             data, time = get_data(now)
         if not data.empty:
             create_plot(data, time)
-            if data['Sci_Name'].nunique() > 10:
-                create_plot(data, time, is_top=False)
         else:
             print('empty dataset')
         if daemon:

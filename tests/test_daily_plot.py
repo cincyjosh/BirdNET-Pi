@@ -178,11 +178,6 @@ class TestCreatePlotOutputPath(unittest.TestCase):
         dp.create_plot(df, NOW)
         self.assertTrue(any('Combo-2024-06-15.png' in p for p in self.saved_paths))
 
-    def test_combo2_saved_with_correct_name(self):
-        df = self._simple_df()
-        dp.create_plot(df, NOW, is_top=False)
-        self.assertTrue(any('Combo2-2024-06-15.png' in p for p in self.saved_paths))
-
     def test_combo_not_combo2_when_is_top_none(self):
         df = self._simple_df()
         dp.create_plot(df, NOW)
@@ -190,16 +185,15 @@ class TestCreatePlotOutputPath(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# main — Combo2 threshold logic
+# main — only Combo is generated
 # ---------------------------------------------------------------------------
 
-class TestMainCombo2Threshold(unittest.TestCase):
-    """main() should only generate Combo2 when there are >10 unique species."""
+class TestMainCombo(unittest.TestCase):
+    """main() generates only the Combo chart — Combo2 is not generated."""
 
     def _run_main(self, n_species):
         species_list = [(f'Species sci {i}', f'Species com {i}', 7) for i in range(n_species)]
         df = _make_df(*species_list)
-
         created_plots = []
 
         def fake_create_plot(data, time, is_top=None):
@@ -212,23 +206,21 @@ class TestMainCombo2Threshold(unittest.TestCase):
 
         return created_plots
 
-    def test_combo_always_generated(self):
+    def test_combo_generated_with_few_species(self):
         calls = self._run_main(n_species=5)
         self.assertIn(None, calls)
 
-    def test_combo2_not_generated_with_few_species(self):
-        calls = self._run_main(n_species=5)
+    def test_combo_generated_with_many_species(self):
+        calls = self._run_main(n_species=15)
+        self.assertIn(None, calls)
+
+    def test_combo2_never_generated(self):
+        calls = self._run_main(n_species=15)
         self.assertNotIn(False, calls)
 
-    def test_combo2_generated_with_many_species(self):
-        calls = self._run_main(n_species=11)
-        self.assertIn(False, calls)
-
-    def test_combo2_threshold_is_10(self):
-        exactly_10 = self._run_main(n_species=10)
-        exactly_11 = self._run_main(n_species=11)
-        self.assertNotIn(False, exactly_10)
-        self.assertIn(False, exactly_11)
+    def test_exactly_one_plot_call_per_run(self):
+        calls = self._run_main(n_species=5)
+        self.assertEqual(len(calls), 1)
 
     def test_empty_dataset_skips_plot(self):
         empty_df = pd.DataFrame()
