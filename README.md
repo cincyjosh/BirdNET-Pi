@@ -79,7 +79,7 @@ The installation creates a log in `$HOME/installation-$(date "+%F").txt`.
 The BirdNET-Pi can be accessed from any web browser on the same network:
 - http://birdnetpi.local OR your Pi's IP address
 - Basic Authentication Username: `birdnet`
-- Password: auto-generated during installation and printed at the end of the install log (`~/installation-<date>.txt`). You can change it in "Tools" > "Settings" > "Advanced Settings".
+- Password: auto-generated during installation and saved to `~/birdnet_credentials.txt` (readable only by you). You can change it in "Tools" > "Settings" > "Advanced Settings".
 
 Please take a look at the [wiki](https://github.com/mcguirepr89/BirdNET-Pi/wiki) and [discussions](https://github.com/mcguirepr89/BirdNET-Pi/discussions) for information on
 - [BirdNET-Pi's Deep Convolutional Neural Network(s)](https://github.com/mcguirepr89/BirdNET-Pi/wiki/BirdNET-Pi:-some-theory-on-classification-&-some-practical-hints)
