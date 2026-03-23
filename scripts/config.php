@@ -49,38 +49,48 @@ if(isset($_GET['threshold'])) {
 }
 
 if(isset($_GET['restart_php']) && $_GET['restart_php'] == "true") {
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) {
+    http_response_code(403);
+    die('Invalid CSRF token.');
+  }
   shell_exec("sudo service php*-fpm restart");
   die();
 }
 
 # Basic Settings
 if(isset($_GET["latitude"])){
-  $latitude = $_GET["latitude"];
-  $longitude = $_GET["longitude"];
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) {
+    http_response_code(403);
+    echo '<p>Invalid CSRF token. Please reload the page and try again.</p>';
+    exit;
+  }
+  $latitude = sanitize_conf_value($_GET["latitude"]);
+  $longitude = sanitize_conf_value($_GET["longitude"]);
   $site_name = $_GET["site_name"];
   $site_name = str_replace('"', "", $site_name);
   $site_name = str_replace('\'', "", $site_name);
-  $birdweather_id = $_GET["birdweather_id"];
+  $site_name = sanitize_conf_value($site_name);
+  $birdweather_id = sanitize_conf_value($_GET["birdweather_id"]);
   $apprise_input = $_GET['apprise_input'];
-  $apprise_notification_title = $_GET['apprise_notification_title'];
+  $apprise_notification_title = sanitize_conf_value($_GET['apprise_notification_title']);
   $apprise_notification_body = htmlspecialchars_decode($_GET['apprise_notification_body'], ENT_QUOTES);
-  $minimum_time_limit = $_GET['minimum_time_limit'];
-  $image_provider = $_GET["image_provider"];
-  $flickr_api_key = $_GET['flickr_api_key'];
-  $flickr_filter_email = $_GET["flickr_filter_email"];
+  $minimum_time_limit = sanitize_conf_value($_GET['minimum_time_limit']);
+  $image_provider = sanitize_conf_value($_GET["image_provider"]);
+  $flickr_api_key = sanitize_conf_value($_GET['flickr_api_key']);
+  $flickr_filter_email = sanitize_conf_value($_GET["flickr_filter_email"]);
   $language = $_GET["language"];
-  $info_site = $_GET["info_site"];
-  $color_scheme = $_GET["color_scheme"];
+  $info_site = sanitize_conf_value($_GET["info_site"]);
+  $color_scheme = sanitize_conf_value($_GET["color_scheme"]);
   $timezone = $_GET["timezone"];
-  $model = $_GET["model"];
-  $sf_thresh = $_GET["sf_thresh"];
+  $model = sanitize_conf_value($_GET["model"]);
+  $sf_thresh = sanitize_conf_value($_GET["sf_thresh"]);
   if(isset($_GET['data_model_version'])) {
     $data_model_version = 2;
   } else {
     $data_model_version = 1;
   }
-  $only_notify_species_names = htmlspecialchars_decode($_GET['only_notify_species_names'], ENT_QUOTES);
-  $only_notify_species_names_2 = htmlspecialchars_decode($_GET['only_notify_species_names_2'], ENT_QUOTES);
+  $only_notify_species_names = sanitize_conf_value(htmlspecialchars_decode($_GET['only_notify_species_names'], ENT_QUOTES));
+  $only_notify_species_names_2 = sanitize_conf_value(htmlspecialchars_decode($_GET['only_notify_species_names_2'], ENT_QUOTES));
 
   if(isset($_GET['apprise_notify_each_detection'])) {
     $apprise_notify_each_detection = 1;
@@ -112,10 +122,11 @@ if(isset($_GET["latitude"])){
     }
     $_SESSION['my_timezone'] = $timezone;
     date_default_timezone_set($timezone);
+    $csrf = htmlspecialchars(get_csrf_token(), ENT_QUOTES);
     echo "<script>setTimeout(
     function() {
       const xhttp = new XMLHttpRequest();
-    xhttp.open(\"GET\", \"./config.php?restart_php=true\", true);
+    xhttp.open(\"GET\", \"./config.php?restart_php=true&csrf_token=" . $csrf . "\", true);
     xhttp.send();
     }, 1000);</script>";
   }
@@ -197,21 +208,26 @@ if(isset($_GET["latitude"])){
 }
 
 if(isset($_GET['sendtest']) && $_GET['sendtest'] == "true") {
+  if (!verify_csrf_token($_GET['csrf_token'] ?? '')) {
+    http_response_code(403);
+    echo '<p>Invalid CSRF token. Please reload the page and try again.</p>';
+    exit;
+  }
   $conf = $_GET['apprise_config'];
   $title = $_GET['apprise_notification_title'];
   $body = $_GET['apprise_notification_body'];
 
+  // tmpfile() creates mode 0600 (owner-only); no chmod needed since the
+  // python process below runs as the same user (caddy/www-data) as PHP.
   $temp_conf = tmpfile();
   $t_conf_path = stream_get_meta_data($temp_conf)['uri'];
-  chmod($t_conf_path, 0644);
   fwrite($temp_conf, $conf);
 
   $temp_body = tmpfile();
   $t_body_path = stream_get_meta_data($temp_body)['uri'];
-  chmod($t_body_path, 0644);
   fwrite($temp_body, $body);
 
-  $cmd = "sudo -u $user $home/BirdNET-Pi/birdnet/bin/python3 $home/BirdNET-Pi/scripts/send_test_notification.py --body $t_body_path --config $t_conf_path --title '" . escapeshellcmd($title) . "' 2>&1";
+  $cmd = escapeshellarg($home . "/BirdNET-Pi/birdnet/bin/python3") . " " . escapeshellarg($home . "/BirdNET-Pi/scripts/send_test_notification.py") . " --body " . escapeshellarg($t_body_path) . " --config " . escapeshellarg($t_conf_path) . " --title " . escapeshellarg($title) . " 2>&1";
   $ret = shell_exec($cmd);
   echo "<pre class=\"bash\">".$ret."</pre>";
   fclose($temp_conf);
@@ -246,7 +262,7 @@ function sendTestNotification(e) {
   document.getElementById("testsuccessmsg").innerHTML = "";
   e.classList.add("disabled");
 
-  var apprise_notification_title = document.getElementsByName("apprise_notification_title")[0].value;
+  var apprise_notification_title = encodeURIComponent(document.getElementsByName("apprise_notification_title")[0].value);
   var apprise_notification_body = encodeURIComponent(document.getElementsByName("apprise_notification_body")[0].value);
   var apprise_config = encodeURIComponent(document.getElementsByName("apprise_input")[0].value);
 
@@ -257,7 +273,8 @@ function sendTestNotification(e) {
             e.classList.remove("disabled");
         }
     }
-    xmlHttp.open("GET", "scripts/config.php?sendtest=true"+"&apprise_notification_body="+apprise_notification_body+"&apprise_config="+apprise_config+"&apprise_notification_title="+apprise_notification_title, true); // true for asynchronous
+    var csrf_token = encodeURIComponent(document.getElementById("csrf_token").value);
+    xmlHttp.open("GET", "scripts/config.php?sendtest=true"+"&csrf_token="+csrf_token+"&apprise_notification_body="+apprise_notification_body+"&apprise_config="+apprise_config+"&apprise_notification_title="+apprise_notification_title, true); // true for asynchronous
     xmlHttp.send(null);
 }
 </script>
@@ -680,6 +697,7 @@ https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
 
       <input type="hidden" name="status" value="success">
       <input type="hidden" name="submit" value="settings">
+      <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo htmlspecialchars(get_csrf_token(), ENT_QUOTES); ?>">
 <div class="float">
       <button type="submit" id="basicformsubmit" onclick="if(document.getElementById('basicform').checkValidity()){this.innerHTML = 'Updating... please wait.';this.classList.add('disabled')}" name="view" value="Settings">
 <?php

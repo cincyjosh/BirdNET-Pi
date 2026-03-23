@@ -59,17 +59,29 @@ CURRENT_TIMEZONE=$(timedatectl show --value --property=Timezone)
 
 ./install_language_label.sh || exit 1
 
-echo ""
-echo "================================================================"
-echo "  BirdNET-Pi installation complete!"
-echo ""
-echo "  Web interface password (username: birdnet):"
-echo "  ${CADDY_PWD}"
-echo ""
-echo "  Save this password — you will need it to access the Tools,"
-echo "  Settings, and Live Audio Stream pages."
-echo "  You can change it later in Tools > Settings > Advanced Settings."
-echo "================================================================"
-echo ""
+# Save the generated password to a private file so it is never captured by
+# the tee log (installation-YYYY-MM-DD.txt).  The file is chmod 600 so only
+# the installing user can read it.  In interactive installs we also write it
+# to /dev/tty; in headless/CI runs the file is the only record.
+{ set +x; } 2>/dev/null
+_cred_file="${HOME}/birdnet_credentials.txt"
+printf 'BirdNET-Pi web interface\nUsername: birdnet\nPassword: %s\n' "${CADDY_PWD}" > "${_cred_file}"
+chmod 600 "${_cred_file}"
+if [ -c /dev/tty ]; then
+  {
+    echo ""
+    echo "================================================================"
+    echo "  BirdNET-Pi installation complete!"
+    echo ""
+    echo "  Web interface password (username: birdnet):"
+    echo "  ${CADDY_PWD}"
+    echo ""
+    echo "  Credentials also saved to: ${_cred_file}"
+    echo "  You can change the password later in Tools > Advanced Settings."
+    echo "================================================================"
+    echo ""
+  } > /dev/tty
+fi
+set -x
 
 exit 0

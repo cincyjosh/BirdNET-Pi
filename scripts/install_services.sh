@@ -247,7 +247,7 @@ Restart=on-failure
 RestartSec=5
 Type=simple
 User=${USER}
-ExecStart=$HOME/BirdNET-Pi/birdnet/bin/streamlit run $HOME/BirdNET-Pi/scripts/plotly_streamlit.py --browser.gatherUsageStats false --server.address localhost --server.baseUrlPath "/stats" --server.enableXsrfProtection false
+ExecStart=$HOME/BirdNET-Pi/birdnet/bin/streamlit run $HOME/BirdNET-Pi/scripts/plotly_streamlit.py --browser.gatherUsageStats false --server.address localhost --server.baseUrlPath "/stats"
 
 [Install]
 WantedBy=multi-user.target
@@ -355,6 +355,7 @@ caddy ALL=(ALL) NOPASSWD: /usr/local/bin/update_birdnet.sh
 caddy ALL=(ALL) NOPASSWD: /usr/local/bin/clear_all_data.sh
 caddy ALL=(ALL) NOPASSWD: /usr/local/bin/birdnet_changeidentification.sh
 caddy ALL=(ALL) NOPASSWD: /usr/local/bin/disk_species_count.sh
+caddy ALL=(ALL) NOPASSWD: /usr/bin/git
 EOF
   chmod 0440 /etc/sudoers.d/010_caddy-nopasswd
 }

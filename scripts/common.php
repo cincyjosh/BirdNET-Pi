@@ -101,6 +101,15 @@ function verify_csrf_token($token) {
   return hash_equals($expected, $token);
 }
 
+function sanitize_conf_value($value) {
+  // Strip characters that are dangerous in preg_replace replacement strings.
+  // Newlines would inject additional config keys; backslashes and $ trigger
+  // backreference substitution (e.g. $0 = whole match, \1 = capture group).
+  $value = str_replace(["\n", "\r", "\0"], '', $value);
+  $value = str_replace(['\\', '$'], ['\\\\', '\\$'], $value);
+  return $value;
+}
+
 function debug_log($message) {
   if (is_bool($message)) {
     $message = $message ? 'true' : 'false';
