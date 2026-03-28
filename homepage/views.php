@@ -382,14 +382,16 @@ window.onbeforeunload = function(event) {
 function getTheDate(increment) {
   var theDate = "<?php if (isset($theDate)) echo $theDate;?>";
 
-  d = new Date(theDate);
-  d.setDate(d.getDate(theDate) + increment);
+  // Parse parts directly to avoid UTC-vs-local timezone offset shifting the date
+  var parts = theDate.split("-");
+  var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  d.setDate(d.getDate() + increment);
   yyyy = d.getFullYear();
   mm = d.getMonth() + 1; if (mm < 10) mm = "0" + mm;
   dd = d.getDate(); if (dd < 10) dd = "0" + dd;
 
   document.getElementById("SwipeSpinner").hidden = false;
-  
+
   window.location = "/views.php?date="+yyyy+"-"+mm+"-"+dd+"&view=Daily+Charts";
 }
 
