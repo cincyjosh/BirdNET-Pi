@@ -155,10 +155,14 @@ if (file_exists('./Charts/'.$chart)) {
 } else {
   echo "<p>No Charts for $theDate</p>";
 }
+$isToday = ($theDate === date('Y-m-d'));
+$nextBtn = $isToday
+  ? "<span style=\"font-size:1.3em;padding:4px 10px;opacity:0.3;cursor:not-allowed;\">&#9654;</span>"
+  : "<button type=\"button\" onclick=\"getTheDate(+1)\" title=\"Next day\" style=\"font-size:1.3em;padding:4px 10px;background-color:rgb(219,255,235);border-radius:4px;box-shadow:0px 3px 1px -2px rgba(0,0,0,0.20),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12);\">&#9654;</button>";
 echo "<div class=\"date-nav\" style=\"display:flex;justify-content:center;align-items:center;gap:12px;margin:8px auto 16px auto;\">
   <button type=\"button\" onclick=\"getTheDate(-1)\" title=\"Previous day\" style=\"font-size:1.3em;padding:4px 10px;background-color:rgb(219,255,235);border-radius:4px;box-shadow:0px 3px 1px -2px rgba(0,0,0,0.20),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12);\">&#9664;</button>
   <span style=\"font-size:1.1em;font-weight:bold;\">$theDate</span>
-  <button type=\"button\" onclick=\"getTheDate(+1)\" title=\"Next day\" style=\"font-size:1.3em;padding:4px 10px;background-color:rgb(219,255,235);border-radius:4px;box-shadow:0px 3px 1px -2px rgba(0,0,0,0.20),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12);\">&#9654;</button>
+  $nextBtn
 </div>";
 echo "</div>";
 if (get_included_files()[0] === __FILE__) {
