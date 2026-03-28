@@ -4,8 +4,9 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 require_once 'scripts/common.php';
 
-$startdate = strtotime('last sunday') - (7*86400);
-$enddate = strtotime('last sunday') - (1*86400);
+$week_offset = isset($_GET['week_offset']) ? intval($_GET['week_offset']) : 0;
+$startdate = strtotime('last sunday') - (7*86400) + ($week_offset * 7 * 86400);
+$enddate = strtotime('last sunday') - (1*86400) + ($week_offset * 7 * 86400);
 
 $debug = false;
 
@@ -124,7 +125,7 @@ if(isset($_GET['ascii'])) {
 	{
 		if($stats["is_first_seen"]) {
 			$newspeciescount++;
-			echo htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')." - ".$scount."<br>";
+			echo htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')." - ".intval($scount)."<br>";
 		}
 	}
 	if($newspeciescount == 0) {
@@ -192,7 +193,7 @@ echo "<h1>Week ".date('W', $enddate)." Report</h1>".date('F jS, Y',$startdate)."
 	{
 		if($stats["is_first_seen"]) {
 			$newspeciescount++;
-			echo "<tr><td>".htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')."<br><small style=\"font-size:small\">".$scount."</small><br></td></tr>";
+			echo "<tr><td>".htmlspecialchars($com_name, ENT_QUOTES, 'UTF-8')."<br><small style=\"font-size:small\">".intval($scount)."</small><br></td></tr>";
 		}
 	}
 	if($newspeciescount == 0) {
@@ -207,4 +208,13 @@ echo "<h1>Week ".date('W', $enddate)." Report</h1>".date('F jS, Y',$startdate)."
 <br>
 <div style="text-align:center">
 	<hr><small style="font-size:small">* percentages are calculated relative to week <?php echo date('W', $enddate) - 1; ?></small>
+</div>
+<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin:12px auto 16px auto;">
+  <a href="views.php?view=Weekly+Report&week_offset=<?php echo $week_offset - 1; ?>" style="font-size:1.3em;padding:4px 10px;background-color:rgb(219,255,235);border-radius:4px;box-shadow:0px 3px 1px -2px rgba(0,0,0,0.20),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12);text-decoration:none;color:black;" title="Previous week">&#9664;</a>
+  <span style="font-size:1.1em;font-weight:bold;">Week <?php echo date('W', $enddate); ?> (<?php echo date('M j', $startdate); ?> &ndash; <?php echo date('M j', $enddate); ?>)</span>
+  <?php if ($week_offset < 0): ?>
+  <a href="views.php?view=Weekly+Report&week_offset=<?php echo $week_offset + 1; ?>" style="font-size:1.3em;padding:4px 10px;background-color:rgb(219,255,235);border-radius:4px;box-shadow:0px 3px 1px -2px rgba(0,0,0,0.20),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12);text-decoration:none;color:black;" title="Next week">&#9654;</a>
+  <?php else: ?>
+  <span style="font-size:1.3em;padding:4px 10px;opacity:0.3;cursor:not-allowed;">&#9654;</span>
+  <?php endif; ?>
 </div>
