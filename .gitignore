@@ -48,4 +48,5 @@ include_species_list.txt
 whitelist_species_list.txt
 /nbproject/private/
 CLAUDE.local.md
+AGENTS.md
 .claude/
