@@ -1,9 +1,9 @@
 <?php
 
-/* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-
+// Input is used in prepared SQL statements (injection-safe) or validated
+// before use. Output encoding happens at render time with htmlspecialchars().
+// FILTER_SANITIZE_SPECIAL_CHARS was removed: it corrupted species names and
+// filenames before DB lookup (e.g. "Clark's Nutcracker" → "Clark&#39;s Nutcracker").
 error_reporting(E_ALL);
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
@@ -11,9 +11,11 @@ require_once 'scripts/common.php';
 $config = get_config();
 
 if(isset($_GET['date'])){
-$theDate = $_GET['date'];
+  // Validate YYYY-MM-DD format: $theDate is used in img src paths and echoed
+  // to HTML, so restrict to digits and hyphens before any other use.
+  $theDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date']) ? $_GET['date'] : date('Y-m-d');
 } else {
-$theDate = date('Y-m-d');
+  $theDate = date('Y-m-d');
 }
 $chart = "Combo-$theDate.png";
 $chart2 = "Combo2-$theDate.png";
@@ -151,9 +153,9 @@ function submitID() {
 $time = time();
 
 if (file_exists('./Charts/'.$chart)) {
-  echo "<img src=\"/Charts/$chart?nocache=$time\" >";
+  echo "<img src=\"/Charts/" . htmlspecialchars($chart, ENT_QUOTES, 'UTF-8') . "?nocache=" . (int)$time . "\" >";
 } else {
-  echo "<p>No Charts for $theDate</p>";
+  echo "<p>No Charts for " . htmlspecialchars($theDate, ENT_QUOTES, 'UTF-8') . "</p>";
 }
 $isToday = ($theDate === date('Y-m-d'));
 $nextBtn = $isToday

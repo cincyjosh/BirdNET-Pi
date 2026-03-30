@@ -1,9 +1,9 @@
 <?php
 
-/* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-
+// Input is used in prepared SQL statements (injection-safe) or validated
+// before use. Output encoding happens at render time with htmlspecialchars().
+// FILTER_SANITIZE_SPECIAL_CHARS was removed: it corrupted filenames before
+// DB lookup (e.g. filenames containing '&' or "'" would never match).
 error_reporting(E_ERROR);
 ini_set('display_errors',1);
 require_once 'scripts/common.php';
@@ -114,8 +114,19 @@ if(isset($_GET['shiftfile'])) {
   $freqshift_tool = $config['FREQSHIFT_TOOL'];
 
   if ($freqshift_tool == "ffmpeg") {
-    $pitch_arg = escapeshellarg($config['FREQSHIFT_LO'] . "/" . $config['FREQSHIFT_HI']);
-    $cmd = "sudo /usr/bin/nohup /usr/bin/ffmpeg -y -i ".escapeshellarg($pi.$filename)." -af \"rubberband=pitch=$pitch_arg\" ".escapeshellarg($shifted_path.$filename);
+    $lo = $config['FREQSHIFT_LO'];
+    $hi = $config['FREQSHIFT_HI'];
+    // Validate that both config values are numeric; reject division by zero.
+    // Previously, escapeshellarg() on "LO/HI" produced a shell-quoted string
+    // like '2/1' that ffmpeg received literally (with the quotes) inside the
+    // -af filter expression, causing it to reject or misparse the argument.
+    if (!is_numeric($lo) || !is_numeric($hi) || (float)$hi == 0.0) {
+      error_log("Invalid FREQSHIFT config: LO=$lo HI=$hi");
+      die();
+    }
+    $pitch_ratio = (float)$lo / (float)$hi;
+    $af_filter = escapeshellarg('rubberband=pitch=' . $pitch_ratio);
+    $cmd = "sudo /usr/bin/nohup /usr/bin/ffmpeg -y -i ".escapeshellarg($pi.$filename)." -af ".$af_filter." ".escapeshellarg($shifted_path.$filename);
     shell_exec("sudo mkdir -p ".escapeshellarg($shifted_path.$dir)." && ".$cmd);
 
   } else if ($freqshift_tool == "sox") {
@@ -394,7 +405,7 @@ if(!isset($_GET['species']) && !isset($_GET['filename'])){
    text-align: center">
    <form action="views.php" method="GET">
       <input type="hidden" name="view" value="Recordings">
-      <input type="hidden" name="<?php echo $view; ?>" value="<?php echo $_GET['date']; ?>">
+      <input type="hidden" name="<?php echo $view; ?>" value="<?php echo htmlspecialchars($_GET['date'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
       <button <?php if(!isset($_GET['sort']) || $_GET['sort'] == "alphabetical"){ echo "class='sortbutton active'";} else { echo "class='sortbutton'"; }?> type="submit" name="sort" value="alphabetical">
          <img src="images/sort_abc.svg" title="Sort by alphabetical" alt="Sort by alphabetical">
       </button>
@@ -514,8 +525,8 @@ if(isset($_GET['species'])){ ?>
    text-align: center">
    <form action="views.php" method="GET">
       <input type="hidden" name="view" value="Recordings">
-      <input type="hidden" name="species" value="<?php echo $_GET['species']; ?>">
-      <input type="hidden" name="sort" value="<?php echo $_GET['sort']; ?>">
+      <input type="hidden" name="species" value="<?php echo htmlspecialchars($_GET['species'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+      <input type="hidden" name="sort" value="<?php echo htmlspecialchars($_GET['sort'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
       <button <?php if(!isset($_GET['sort']) || $_GET['sort'] == "" || $_GET['sort'] == "date"){ echo "class='sortbutton active'";} else { echo "class='sortbutton'"; }?> type="submit" name="sort" value="date">
          <img width=35px src="images/sort_date.svg" title="Sort by date" alt="Sort by date">
       </button>

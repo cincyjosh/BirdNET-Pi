@@ -335,7 +335,53 @@ configure_caddy_php() {
   echo "Adding Caddy sudoers rule"
   cat << 'EOF' > /etc/sudoers.d/010_caddy-nopasswd
 # BirdNET-Pi: allow caddy (web server) to run only the commands it needs
-caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl, /bin/systemctl
+# systemctl: locked to safe operations on known services only.
+# Unrestricted systemctl was a full privilege-escalation primitive:
+# 'systemctl link/edit/set-property' on an attacker-controlled unit
+# executes arbitrary commands as root after any web-layer compromise.
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable --now birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable --now birdnet_*.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable --now chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable --now chart_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable --now spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable --now spectrogram_viewer.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable --now livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable --now livestream.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status icecast2.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start icecast2.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop icecast2.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart icecast2.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable icecast2
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable icecast2
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status web_terminal.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start web_terminal.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop web_terminal.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart web_terminal.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable --now web_terminal.service
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable --now web_terminal.service
+# RAM-drive mount: service name is the systemd-escaped home path (*.mount).
+# 'link' is not granted so no new unit can be injected via this wildcard.
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status *.mount
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl enable *.mount
+caddy ALL=(ALL) NOPASSWD: /usr/bin/systemctl disable *.mount
 caddy ALL=(ALL) NOPASSWD: /usr/sbin/reboot, /sbin/reboot, /usr/bin/reboot
 caddy ALL=(ALL) NOPASSWD: /usr/sbin/shutdown, /sbin/shutdown
 caddy ALL=(ALL) NOPASSWD: /usr/bin/rm, /bin/rm

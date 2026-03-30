@@ -69,10 +69,14 @@ def get_csrf_token(session: dict) -> str:
 
 def verify_csrf_token(session: dict, submitted_token: str) -> bool:
     """
-    PHP: return hash_equals($_SESSION['csrf_token'] ?? '', $token);
-    Uses constant-time comparison to prevent timing attacks.
+    PHP: if ($expected === '') { return false; }
+         return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+    Rejects immediately when no token has been issued so that
+    hash_equals('', '') cannot succeed (empty/empty bypass).
     """
     expected = session.get('csrf_token', '')
+    if not expected:
+        return False
     return hmac.compare_digest(expected, submitted_token)
 
 
@@ -169,6 +173,13 @@ class TestCsrfToken(unittest.TestCase):
     def test_empty_token_rejected(self):
         session = {}
         get_csrf_token(session)
+        self.assertFalse(verify_csrf_token(session, ''))
+
+    def test_empty_session_and_empty_token_rejected(self):
+        """Regression: no session token + empty submitted token must fail.
+        hash_equals('', '') returns true, so the guard on $expected === ''
+        is required to close this bypass."""
+        session = {}
         self.assertFalse(verify_csrf_token(session, ''))
 
     def test_missing_session_token_rejected(self):

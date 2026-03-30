@@ -1,9 +1,9 @@
 <?php
 
-/* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-
+// Input is used in prepared SQL statements (injection-safe) or validated
+// before use. Output encoding happens at render time with htmlspecialchars().
+// FILTER_SANITIZE_SPECIAL_CHARS was removed: it corrupted species names and
+// filenames before DB lookup (e.g. "Clark's Nutcracker" → "Clark&#39;s Nutcracker").
 session_start();
 
 require_once 'scripts/common.php';

@@ -1,9 +1,9 @@
 <?php
 
-/* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-
+// Input is used in prepared SQL statements (injection-safe) or validated
+// before use. Output encoding happens at render time with htmlspecialchars().
+// FILTER_SANITIZE_SPECIAL_CHARS was removed: it corrupted species names and
+// filenames before DB lookup (e.g. "Clark's Nutcracker" → "Clark&#39;s Nutcracker").
 ini_set('session.gc_maxlifetime', 7200);
 session_set_cookie_params(7200);
 session_start();
@@ -278,7 +278,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
   // don't show the button if there's no more detections to be displayed, we're at the end of the list
   if($iterations >= 40 && isset($_GET['display_limit']) && is_numeric($_GET['display_limit'])) { ?>
   <center>
-  <button class="loadmore" onclick="loadDetections(<?php echo $_GET['display_limit'] + 40; ?>, this);" value="Today's Detections">Load 40 More...</button>
+  <button class="loadmore" onclick="loadDetections(<?php echo (int)$_GET['display_limit'] + 40; ?>, this);" value="Today's Detections">Load 40 More...</button>
   </center>
   <?php }
 

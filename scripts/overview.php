@@ -117,7 +117,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true" && isse
         }
         </style>
         <table class="<?php echo htmlspecialchars(($_GET['previous_detection_identifier'] == 'undefined') ? '' : 'fade-in', ENT_QUOTES, 'UTF-8'); ?>">
-          <h3>Most Recent Detection: <span style="font-weight: normal;"><?php echo $mostrecent['Date']." ".$mostrecent['Time'];?></span></h3>
+          <h3>Most Recent Detection: <span style="font-weight: normal;"><?php echo htmlspecialchars($mostrecent['Date']." ".$mostrecent['Time'], ENT_QUOTES, 'UTF-8');?></span></h3>
           <tr>
             <td class="relative"><a target="_blank" href="index.php?filename=<?php echo htmlspecialchars($mostrecent['File_Name'], ENT_QUOTES, 'UTF-8'); ?>"><img class="copyimage" title="Open in new tab" width="25" height="25" src="images/copy.png"></a>
             <div class="centered_image_container" style="margin-bottom: 0px !important;">
@@ -275,20 +275,48 @@ if (get_included_files()[0] === __FILE__) {
 
   function safeUrl(url) {
     try {
-      const p = new URL(url);
-      return (p.protocol === 'https:' || p.protocol === 'http:') ? url : '#';
+      var u = new URL(url);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return '#';
+      return u.href;  // normalised; never returns the raw input string
     } catch(e) { return '#'; }
   }
   function setModalText(iter, title, text, authorlink, photolink, licenseurl) {
-    let safe_text = safeUrl(text);
-    let safe_authorlink = safeUrl(authorlink);
-    let safe_photolink = safeUrl(photolink);
-    let safe_licenseurl = safeUrl(licenseurl);
-    let text_display = shorten(safe_text);
-    let authorlink_display = shorten(safe_authorlink);
-    let licenseurl_display = shorten(safe_licenseurl);
+    var safe_text = safeUrl(text);
+    var safe_authorlink = safeUrl(authorlink);
+    var safe_photolink = safeUrl(photolink);
+    var safe_licenseurl = safeUrl(licenseurl);
+    var text_display = shorten(safe_text);
+    var authorlink_display = shorten(safe_authorlink);
+    var licenseurl_display = shorten(safe_licenseurl);
+
     document.getElementById('modalHeading').textContent = "Photo: \"" + decodeURIComponent(title.replaceAll("+"," ")) + "\" Attribution";
-    document.getElementById('modalText').innerHTML = "<div><img style='border-radius:5px;max-height: calc(100vh - 15rem);display: block;margin: 0 auto;' src='"+safe_photolink+"'></div><br><div style='white-space:nowrap'>Image link: <a target='_blank' href='"+safe_text+"'>"+text_display+"</a><br>Author link: <a target='_blank' href='"+safe_authorlink+"'>"+authorlink_display+"</a><br>License URL: <a href='"+safe_licenseurl+"' target='_blank'>"+licenseurl_display+"</a></div>";
+
+    var img = document.createElement('img');
+    img.style.cssText = 'border-radius:5px;max-height:calc(100vh - 15rem);display:block;margin:0 auto';
+    img.src = safe_photolink;
+
+    var imgLink = document.createElement('a');
+    imgLink.href = safe_text; imgLink.target = '_blank'; imgLink.textContent = text_display;
+    var authorLinkEl = document.createElement('a');
+    authorLinkEl.href = safe_authorlink; authorLinkEl.target = '_blank'; authorLinkEl.textContent = authorlink_display;
+    var licenseLinkEl = document.createElement('a');
+    licenseLinkEl.href = safe_licenseurl; licenseLinkEl.target = '_blank'; licenseLinkEl.textContent = licenseurl_display;
+
+    var linksDiv = document.createElement('div');
+    linksDiv.style.whiteSpace = 'nowrap';
+    linksDiv.appendChild(document.createTextNode('Image link: ')); linksDiv.appendChild(imgLink); linksDiv.appendChild(document.createElement('br'));
+    linksDiv.appendChild(document.createTextNode('Author link: ')); linksDiv.appendChild(authorLinkEl); linksDiv.appendChild(document.createElement('br'));
+    linksDiv.appendChild(document.createTextNode('License URL: ')); linksDiv.appendChild(licenseLinkEl);
+
+    var imgDiv = document.createElement('div');
+    imgDiv.appendChild(img);
+
+    var modalText = document.getElementById('modalText');
+    modalText.textContent = '';
+    modalText.appendChild(imgDiv);
+    modalText.appendChild(document.createElement('br'));
+    modalText.appendChild(linksDiv);
+
     last_photo_link = safe_text;
     showDialog();
   }

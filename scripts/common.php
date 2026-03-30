@@ -98,6 +98,12 @@ function get_csrf_token() {
 
 function verify_csrf_token($token) {
   $expected = $_SESSION['csrf_token'] ?? '';
+  // Reject immediately if no token has been issued; hash_equals('', '') would
+  // return true and bypass CSRF protection on requests that arrive before any
+  // page has called get_csrf_token() to populate the session.
+  if ($expected === '') {
+    return false;
+  }
   return hash_equals($expected, $token);
 }
 

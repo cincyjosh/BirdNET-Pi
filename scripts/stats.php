@@ -1,9 +1,10 @@
 <?php
 
-/* Prevent XSS input */
-$_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
-$_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
-
+// Input is used in prepared SQL statements (injection-safe) or validated
+// before use. Output encoding happens at render time with htmlspecialchars().
+// FILTER_SANITIZE_SPECIAL_CHARS was removed: it corrupted species names and
+// filenames containing apostrophes or ampersands before DB lookup, causing
+// no-match results (e.g. "Clark's Nutcracker" → "Clark&#39;s Nutcracker").
 ini_set('user_agent', 'PHP_Flickr/1.0');
 error_reporting(E_ERROR);
 ini_set('display_errors', 0);
@@ -33,7 +34,7 @@ if (get_included_files()[0] === __FILE__) {
 <div style="width: auto;
    text-align: center">
    <form action="views.php" method="GET">
-    <input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo $_GET['sort'];}?>">
+    <input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo htmlspecialchars($_GET['sort'], ENT_QUOTES, 'UTF-8');}?>">
       <input type="hidden" name="view" value="Species Stats">
       <button <?php if(!isset($_GET['sort']) || $_GET['sort'] == "alphabetical"){ echo "class='sortbutton active'";} else { echo "class='sortbutton'"; }?> type="submit" name="sort" value="alphabetical">
          <img src="images/sort_abc.svg" title="Sort by alphabetical" alt="Sort by alphabetical">
@@ -51,7 +52,7 @@ if (get_included_files()[0] === __FILE__) {
 </div>
 <br>
 <form action="views.php" method="GET">
-<input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo $_GET['sort'];}?>">
+<input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo htmlspecialchars($_GET['sort'], ENT_QUOTES, 'UTF-8');}?>">
 <input type="hidden" name="view" value="Species Stats">
 <table>
   <?php
@@ -85,7 +86,7 @@ if (get_included_files()[0] === __FILE__) {
       if ($index < count($birds)) {
         ?>
         <td>
-            <button type="submit" name="species" value="<?php echo $birds[$index];?>"><?php echo $values[$index];?></button>
+            <button type="submit" name="species" value="<?php echo htmlspecialchars($birds[$index], ENT_QUOTES, 'UTF-8');?>"><?php echo htmlspecialchars($values[$index], ENT_QUOTES, 'UTF-8');?></button>
         </td>
         <?php
       } else {
@@ -179,15 +180,26 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
   $info_url = get_info_url($results['Sci_Name']);
   $url = $info_url['URL'];
   $url_title = $info_url['TITLE'];
-  echo str_pad("<h3>$species</h3>
+  $e_species  = htmlspecialchars($species, ENT_QUOTES, 'UTF-8');
+  $e_filename = htmlspecialchars($results['File_Name'], ENT_QUOTES, 'UTF-8');
+  $e_sciname  = htmlspecialchars($sciname, ENT_QUOTES, 'UTF-8');
+  $e_url      = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+  $e_urltitle = htmlspecialchars($url_title, ENT_QUOTES, 'UTF-8');
+  $e_dbsci    = htmlspecialchars($dbsciname, ENT_QUOTES, 'UTF-8');
+  $e_fpath    = htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
+  $e_date     = htmlspecialchars($date, ENT_QUOTES, 'UTF-8');
+  $e_time     = htmlspecialchars($time, ENT_QUOTES, 'UTF-8');
+  $e_count    = htmlspecialchars((string)$count, ENT_QUOTES, 'UTF-8');
+  $e_maxconf  = htmlspecialchars($maxconf, ENT_QUOTES, 'UTF-8');
+  echo str_pad("<h3>$e_species</h3>
     <table><tr>
-  <td class=\"relative\"><a target=\"_blank\" href=\"index.php?filename=".$results['File_Name']."\"><img title=\"Open in new tab\" class=\"copyimage\" width=25 src=\"images/copy.png\"></a><i>$sciname</i>
-  <a href=\"$url\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"$url_title\" src=\"images/info.png\" width=\"20\"></a>
-  <a href=\"https://wikipedia.org/wiki/$sciname\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a><br>
-  Occurrences: $count<br>
-  Max Confidence: $maxconf<br>
-  Best Recording: $date $time<br><br>
-  <video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$filename.png\" title=\"$filename\"><source src=\"$filename\"></video></td>
+  <td class=\"relative\"><a target=\"_blank\" href=\"index.php?filename=$e_filename\"><img title=\"Open in new tab\" class=\"copyimage\" width=25 src=\"images/copy.png\"></a><i>$e_sciname</i>
+  <a href=\"$e_url\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"$e_urltitle\" src=\"images/info.png\" width=\"20\"></a>
+  <a href=\"https://wikipedia.org/wiki/$e_dbsci\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a><br>
+  Occurrences: $e_count<br>
+  Max Confidence: $e_maxconf<br>
+  Best Recording: $e_date $e_time<br><br>
+  <video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$e_fpath.png\" title=\"$e_fpath\"><source src=\"$e_fpath\"></video></td>
   </tr>
     </table>
   <p>Loading Images from Flickr</p>", '6096');
@@ -206,7 +218,7 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
       $modaltext = "https://flickr.com/photos/".$val["owner"]."/".$val["id"];
       $authorlink = "https://flickr.com/people/".$val["owner"];
       $imageurl = 'https://farm' .$val["farm"]. '.static.flickr.com/' .$val["server"]. '/' .$val["id"]. '_'  .$val["secret"].  '.jpg';
-      echo "<span style='cursor:pointer;' onclick='setModalText(".$iter.",\"".$val["title"]."\",\"".$modaltext."\", \"".$authorlink."\")'><img style='vertical-align:top' src=\"$imageurl\"></span>";
+      echo "<span style='cursor:pointer;' onclick='setModalText(".$iter.",\"".htmlspecialchars($val["title"], ENT_QUOTES, 'UTF-8')."\",\"".$modaltext."\", \"".$authorlink."\")'><img style='vertical-align:top' src=\"".htmlspecialchars($imageurl, ENT_QUOTES, 'UTF-8')."\"></span>";
     }
   }
 }
@@ -219,7 +231,7 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
 <hr><br>
 <?php } ?>
   <form action="views.php" method="GET">
-    <input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo $_GET['sort'];}?>">
+    <input type="hidden" name="sort" value="<?php if(isset($_GET['sort'])){echo htmlspecialchars($_GET['sort'], ENT_QUOTES, 'UTF-8');}?>">
     <input type="hidden" name="view" value="Species Stats">
     <table>
 <?php
