@@ -82,9 +82,9 @@ sudo_with_user git --no-pager -C $HOME/BirdNET-Pi diff --stat $commit_hash HEAD
 
 $my_dir/pre_update.sh
 
-sudo systemctl daemon-reload
-sudo ln -sf $my_dir/* /usr/local/bin/
+systemctl daemon-reload
+ln -sf $my_dir/* /usr/local/bin/
 
 # The script below handles changes to the host system
 # Any additions to the updater should be placed in that file.
-sudo $my_dir/update_birdnet_snippets.sh
+$my_dir/update_birdnet_snippets.sh
