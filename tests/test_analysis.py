@@ -2,10 +2,28 @@ import os
 import unittest
 from unittest.mock import patch
 
-from scripts.utils.analysis import run_analysis
+import numpy as np
+import soundfile as sf
+
+from scripts.utils.analysis import run_analysis, readAudioData, splitSignal
 from scripts.utils.classes import ParseFileName
 from tests.helpers import TESTDATA, Settings
 from scripts.utils.analysis import filter_humans
+
+
+def _load_audio_chunks(path, overlap, sample_rate, chunk_duration):
+    """Load audio using soundfile (no system deps) and split into chunks."""
+    sig, rate = sf.read(path, dtype='float32', always_2d=False)
+    if sig.ndim > 1:
+        sig = sig.mean(axis=1)
+    if rate != sample_rate:
+        # Simple resample via numpy repeat/decimate approximation
+        sig = np.interp(
+            np.linspace(0, len(sig), int(len(sig) * sample_rate / rate)),
+            np.arange(len(sig)),
+            sig
+        ).astype(np.float32)
+    return splitSignal(sig, sample_rate, overlap, seconds=chunk_duration)
 
 
 class TestRunAnalysis(unittest.TestCase):
@@ -23,7 +41,8 @@ class TestRunAnalysis(unittest.TestCase):
 
     @patch('scripts.utils.helpers._load_settings')
     @patch('scripts.utils.analysis.loadCustomSpeciesList')
-    def test_run_analysis(self, mock_loadCustomSpeciesList, mock_load_settings):
+    @patch('scripts.utils.analysis.readAudioData', side_effect=_load_audio_chunks)
+    def test_run_analysis(self, mock_readAudio, mock_loadCustomSpeciesList, mock_load_settings):
         # Mock the settings and species list
         mock_load_settings.return_value = Settings.with_defaults()
         mock_loadCustomSpeciesList.return_value = []
@@ -31,7 +50,7 @@ class TestRunAnalysis(unittest.TestCase):
         # Test file
         test_file = ParseFileName(self.test_file)
 
-        # Run the analysis
+        # Run the analysis (readAudioData mocked to use soundfile, avoiding system audio deps)
         detections = run_analysis(test_file)
 
         # Assertions: correct species detected with high confidence (exact values vary by platform/tf version)
