@@ -13,25 +13,18 @@ A realtime acoustic bird classification system for the Raspberry Pi 5, 4B, 400, 
 Icon made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
 </p>
 
-## About this fork:
-I've been building on [mcguirepr89's](https://github.com/mcguirepr89/BirdNET-Pi) most excellent work to further update and improve BirdNET-Pi. Maybe someone will find it useful.
+## About this fork
 
-Changes include:
+This is a personal fork of [Nachtzuster's BirdNET-Pi](https://github.com/Nachtzuster/BirdNET-Pi),
+which itself builds on [mcguirepr89's](https://github.com/mcguirepr89/BirdNET-Pi) original work.
 
- - Backup & Restore
- - Web ui is much more responsive
- - Daily charts now include all species, not just top/bottom 10
- - Bump apprise version, so more notification type are possible
- - Swipe events on Daily Charts (by @croisez)
- - Support for 'Species range model V2.4 - V2'
- - Bookworm and Trixie support
- - Experimental support for writing transient files to tmpfs
- - Rework analysis to consolidate analysis/server/extraction. Should make analysis more robust and slightly more efficient, especially on installations with a large number of recordings
- - Bump tflite_runtime to 2.17.1, it is faster
- - Rework daily_plot.py (chart_viewer) to run as a daemon to avoid the very expensive startup
- - Lots of fixes & cleanups
+Changes in this fork include:
 
-!! note: see 'Migrating' on how to migrate from mcguirepr89
+- **Daily Charts navigation**: prev/next day arrow buttons below the chart
+- **Weekly Report navigation**: prev/next week buttons
+- **Daily Charts fix**: disables the next-day arrow when viewing today
+- **Test suite**: added ~180 functional tests covering analysis, reporting, config, DB, and UI helpers
+- **Bug fixes**: UTC timezone shift in date parsing, performance fixes in stats and overview pages
 
 ## Introduction
 BirdNET-Pi is built on the [BirdNET framework](https://github.com/kahst/BirdNET-Analyzer) by [**@kahst**](https://github.com/kahst) <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg"></a> using [pre-built TFLite binaries](https://github.com/PINTO0309/TensorflowLite-bin) by [**@PINTO0309**](https://github.com/PINTO0309) . It is able to recognize bird sounds from a USB microphone or sound card in realtime and share its data with the rest of the world.
@@ -129,7 +122,7 @@ cpu-model: BirdNet
 /usr/local/bin/uninstall.sh && cd ~ && rm -drf BirdNET-Pi
 ```
 ## Migrating
-Before switching, make sure your installation is fully up-to-date. Also make sure to have a backup, that is also the only way to get back to the original BirdNET-Pi.
+Before switching from [Nachtzuster's fork](https://github.com/Nachtzuster/BirdNET-Pi), make sure your installation is fully up-to-date. Also make sure to have a backup, that is also the only way to get back to the original BirdNET-Pi.
 Please note that upgrading your underlying OS to Bookworm is not going to work. Please stick to Bullseye. If you do want Bookworm, you need to start from a fresh install and copy back your data. (remember the backup!)
 
 Run these commands to migrate to this repo:
