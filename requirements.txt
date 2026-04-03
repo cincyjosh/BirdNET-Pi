@@ -5,7 +5,7 @@ tzlocal
 numpy
 pandas
 seaborn
-streamlit==1.44.0
+streamlit>=1.45.0
 plotly
 apprise==1.9.5
 paho-mqtt!=2.0
@@ -15,5 +15,6 @@ inotify
 requests
 matplotlib
 pillow
-pyarrow==20.0.0
+pyarrow>=19.0.1
 soundfile
+pygments>=2.20.0
