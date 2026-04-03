@@ -275,23 +275,20 @@ if(isset($_GET['view'])){
 			  //currently only livestream service uses multiple commands to interact with the required services
 			  if (strpos($command, " && ") !== false) {
 				  $separate_commands = explode("&&", trim($command));
-				  $new_multiservice_status_command = "";
+				  $status_commands = [];
 				  foreach ($separate_commands as $indiv_service_command) {
-					  //explode the string by " " space so we can get each individual component of the command
-					  //and eventually the service name at the end
 					  $separate_command_tmp = explode(" ", trim($indiv_service_command));
-					  //get the service names
-					  $new_multiservice_status_command .= " " . trim(end($separate_command_tmp));
+					  $service_name = trim(end($separate_command_tmp));
+					  $status_commands[] = "sudo systemctl status " . $service_name;
 				  }
-
-				  $service_names = $new_multiservice_status_command;
+				  $status_command = implode(";", $status_commands);
 			  } else {
                   //only one service needs restarting so we only need to query the status of one service
 				  $tmp = explode(" ", trim($command));
-				  $service_names = end($tmp);
+				  $status_command = "sudo systemctl status " . end($tmp);
 			  }
 
-          $command .= " & sleep 3;sudo systemctl status " . $service_names;
+          $command .= " & sleep 3;" . $status_command;
         }
         if($initcommand == "update_birdnet.sh") {
           session_unset();
