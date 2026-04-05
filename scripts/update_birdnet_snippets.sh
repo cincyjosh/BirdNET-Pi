@@ -269,6 +269,14 @@ sqlite3 $HOME/BirdNET-Pi/scripts/birds.db << EOF
 CREATE INDEX IF NOT EXISTS "detections_Sci_Name" ON "detections" ("Sci_Name");
 EOF
 
+# Ensure setgid on scripts/ so SQLite WAL files (-shm, -wal) created by caddy
+# inherit the BirdNET user's group, preventing caddy-owned journal files from
+# blocking birdnet_analysis DB writes.
+if ! [ "$(stat -c '%A' $HOME/BirdNET-Pi/scripts | cut -c6)" = "s" ]; then
+  chown $USER:$USER $HOME/BirdNET-Pi/scripts
+  chmod g+s $HOME/BirdNET-Pi/scripts
+fi
+
 # update snippets above
 
 systemctl daemon-reload
