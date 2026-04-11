@@ -262,7 +262,7 @@ if(isset($_GET['view'])){
                      'stop_core_services.sh',
                      'restart_services.sh',
                      'sudo reboot',
-                     'update_birdnet.sh',
+                     'sudo update_birdnet.sh',
                      'sudo shutdown now',
                      'sudo clear_all_data.sh',
                      "$restore");
