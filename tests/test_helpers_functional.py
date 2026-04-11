@@ -122,7 +122,7 @@ class TestLoadSettings(unittest.TestCase):
     def test_force_reload_reads_fresh_file(self):
         path = make_conf_file()
         try:
-            s1 = _load_settings(path)
+            _load_settings(path)
             # Overwrite the file with different content
             with open(path, 'w') as f:
                 f.write(MINIMAL_CONF.replace('"en"', '"de"'))

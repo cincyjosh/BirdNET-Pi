@@ -5,7 +5,7 @@ from unittest.mock import patch
 import numpy as np
 import soundfile as sf
 
-from scripts.utils.analysis import run_analysis, readAudioData, splitSignal
+from scripts.utils.analysis import run_analysis, splitSignal
 from scripts.utils.classes import ParseFileName
 from tests.helpers import TESTDATA, Settings
 from scripts.utils.analysis import filter_humans

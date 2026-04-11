@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 from queue import Queue
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 # Stub modules that are unavailable on the dev machine
 for _mod in ('inotify', 'inotify.adapters', 'inotify.constants',

@@ -16,7 +16,7 @@ for _mod in ('apprise', 'soundfile', 'requests', 'librosa',
     sys.modules.setdefault(_mod, MagicMock())
 
 import scripts.utils.helpers as helpers_module  # noqa: E402
-from scripts.utils.helpers import PHPConfigParser, _load_settings  # noqa: E402
+from scripts.utils.helpers import _load_settings  # noqa: E402
 
 
 FULL_CONF = """\

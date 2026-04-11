@@ -7,7 +7,6 @@ _DB global so no real birds.db is required.
 import sqlite3
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch
 
 import scripts.utils.db as db_module
 from scripts.utils.db import (

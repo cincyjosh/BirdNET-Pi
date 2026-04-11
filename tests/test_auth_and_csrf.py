@@ -10,9 +10,7 @@ Issues addressed:
      Fix: add error_log() call before echoing.
 """
 
-import hashlib
 import hmac
-import os
 import secrets
 import unittest
 

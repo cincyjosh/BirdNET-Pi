@@ -111,7 +111,7 @@ class TestShellCommandInjection(unittest.TestCase):
     def test_legitimate_delete_still_works(self):
         """Escaping doesn't break normal filenames."""
         cmd = build_rm_cmd_safe(self.target_file)
-        result = subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: safe command, proves legitimate delete works
+        subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: safe command, proves legitimate delete works
         self.assertFalse(os.path.exists(self.target_file), "Legitimate file should be deleted")
 
     def test_filename_with_spaces_works_safely(self):
@@ -180,11 +180,11 @@ class TestConfNewlineInjection(unittest.TestCase):
         malicious_pwd = "foo\nCONFIDENCE=0.0"
         result = conf_replace_safe(self.BASE_CONF, "CADDY_PWD", malicious_pwd)
         lines = result.strip().split("\n")
-        conf_keys = [l.split("=")[0] for l in lines if "=" in l]
+        conf_keys = [line.split("=")[0] for line in lines if "=" in line]
         # CONFIDENCE should only appear once (original value)
         self.assertEqual(conf_keys.count("CONFIDENCE"), 1, "Injected CONFIDENCE key must not appear twice")
         # CADDY_PWD line should not contain a newline
-        caddy_line = next(l for l in lines if l.startswith("CADDY_PWD"))
+        caddy_line = next(line for line in lines if line.startswith("CADDY_PWD"))
         self.assertNotIn("\n", caddy_line)
 
     def test_legitimate_password_update_still_works(self):

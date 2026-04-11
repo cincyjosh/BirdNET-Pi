@@ -15,7 +15,7 @@ for _mod in ('apprise', 'soundfile', 'requests', 'librosa',
 
 import scripts.utils.helpers as helpers_module  # noqa: E402
 from scripts.utils.helpers import (  # noqa: E402
-    get_language, get_model_labels, save_language, set_label_file,
+    get_language, get_model_labels, save_language,
 )
 
 # Use the real English label file bundled with the repo
@@ -159,11 +159,11 @@ class TestGetModelLabels(unittest.TestCase):
 
     def test_labels_are_strings(self):
         result = get_model_labels('BirdNET_GLOBAL_6K_V2.4_Model_FP16')
-        self.assertTrue(all(isinstance(l, str) for l in result))
+        self.assertTrue(all(isinstance(label, str) for label in result))
 
     def test_no_trailing_newlines(self):
         result = get_model_labels('BirdNET_GLOBAL_6K_V2.4_Model_FP16')
-        self.assertTrue(all('\n' not in l for l in result))
+        self.assertTrue(all('\n' not in label for label in result))
 
     def test_uses_settings_model_when_none_given(self):
         from tests.helpers import Settings
