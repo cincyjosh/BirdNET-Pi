@@ -1,4 +1,5 @@
 tensorflow
+ai-edge-litert
 librosa
 pytz
 tzlocal
