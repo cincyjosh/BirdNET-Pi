@@ -46,7 +46,7 @@ def fetch_species_array_unsafe(con, date=None):
     """Original vulnerable PHP pattern — string interpolation."""
     where = f'WHERE Date == "{date}"' if date else ""
     return con.execute(
-        f"SELECT Com_Name FROM detections {where} GROUP BY Sci_Name"
+        f"SELECT Com_Name FROM detections {where} GROUP BY Sci_Name"  # nosec B608 - intentional: documents the vulnerable pattern
     ).fetchall()
 
 
@@ -67,7 +67,7 @@ def fetch_species_array_safe(con, date=None):
 def fetch_best_detection_unsafe(con, com_name):
     """Original vulnerable PHP pattern."""
     return con.execute(
-        f'SELECT Com_Name FROM detections WHERE Com_Name = "{com_name}"'
+        f'SELECT Com_Name FROM detections WHERE Com_Name = "{com_name}"'  # nosec B608 - intentional: documents the vulnerable pattern
     ).fetchall()
 
 
@@ -82,7 +82,7 @@ def fetch_best_detection_safe(con, com_name):
 def search_detections_unsafe(con, searchterm):
     """Original vulnerable todays_detections.php LIKE pattern."""
     return con.execute(
-        f"SELECT Com_Name FROM detections WHERE Com_Name LIKE '%{searchterm}%'"
+        f"SELECT Com_Name FROM detections WHERE Com_Name LIKE '%{searchterm}%'"  # nosec B608 - intentional: documents the vulnerable pattern
     ).fetchall()
 
 
@@ -219,7 +219,7 @@ class TestSearchTermInjection(unittest.TestCase):
 def fetch_by_filename_unsafe(con, filename):
     """Mirrors play.php line 640: prepare() with interpolated $name — still injectable."""
     return con.execute(
-        f'SELECT * FROM detections WHERE File_Name == "{filename}" ORDER BY Date DESC, Time DESC'
+        f'SELECT * FROM detections WHERE File_Name == "{filename}" ORDER BY Date DESC, Time DESC'  # nosec B608 - intentional: documents the vulnerable pattern
     ).fetchall()
 
 
@@ -264,6 +264,7 @@ class TestPlayPhpFilenameInjection(unittest.TestCase):
 def get_todays_count_unsafe(con, sci_name):
     """Mirrors db.py get_todays_count_for — f-string interpolation."""
     today = "2024-01-01"
+    # nosec B608 - intentional: documents the vulnerable pattern
     select_sql = f"SELECT COUNT(*) FROM detections WHERE Date = DATE('{today}') AND Sci_Name = '{sci_name}'"
     return con.execute(select_sql).fetchone()[0]
 
@@ -282,7 +283,7 @@ def get_species_by_date_unsafe(con, date):
     """Mirrors db.py get_species_by — f-string date interpolation."""
     where = f'WHERE Date == "{date}"'
     return con.execute(
-        f"SELECT Com_Name FROM detections {where} GROUP BY Sci_Name"
+        f"SELECT Com_Name FROM detections {where} GROUP BY Sci_Name"  # nosec B608 - intentional: documents the vulnerable pattern
     ).fetchall()
 
 

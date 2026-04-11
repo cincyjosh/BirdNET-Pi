@@ -21,8 +21,8 @@ def get_data(now=None):
     conn = sqlite3.connect(uri, uri=True)
     if now is None:
         now = datetime.now()
-    df = pd.read_sql_query(f"SELECT * from detections WHERE Date = DATE('{now.strftime('%Y-%m-%d')}')",
-                           conn)
+    df = pd.read_sql_query("SELECT * from detections WHERE Date = DATE(?)",
+                           conn, params=[now.strftime('%Y-%m-%d')])
 
     # Convert Date and Time Fields to Panda's format
     df['Date'] = pd.to_datetime(df['Date'])

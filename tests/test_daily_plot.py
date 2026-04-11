@@ -76,7 +76,7 @@ class TestWrapWidth(unittest.TestCase):
 
 class TestGetData(unittest.TestCase):
 
-    def _fake_read_sql(self, query, conn):
+    def _fake_read_sql(self, query, conn, **kwargs):
         return pd.DataFrame({
             'Date': pd.to_datetime(['2024-06-15', '2024-06-15']),
             'Time': pd.to_datetime(['07:00:00', '08:30:00'], format='%H:%M:%S'),
@@ -105,29 +105,29 @@ class TestGetData(unittest.TestCase):
         self.assertTrue(all(isinstance(h, int) for h in df['Hour of Day']))
 
     def test_uses_provided_datetime(self):
-        captured = []
+        captured_params = []
 
-        def fake_read(query, conn):
-            captured.append(query)
+        def fake_read(query, conn, **kwargs):
+            captured_params.append(kwargs.get('params', []))
             return self._fake_read_sql(query, conn)
 
         with patch('sqlite3.connect'), \
              patch('pandas.read_sql_query', side_effect=fake_read):
             dp.get_data(NOW)
-        self.assertIn('2024-06-15', captured[0])
+        self.assertIn('2024-06-15', captured_params[0])
 
     def test_defaults_to_today_when_no_date_given(self):
         today = datetime.now().strftime('%Y-%m-%d')
-        captured = []
+        captured_params = []
 
-        def fake_read(query, conn):
-            captured.append(query)
+        def fake_read(query, conn, **kwargs):
+            captured_params.append(kwargs.get('params', []))
             return self._fake_read_sql(query, conn)
 
         with patch('sqlite3.connect'), \
              patch('pandas.read_sql_query', side_effect=fake_read):
             dp.get_data()
-        self.assertIn(today, captured[0])
+        self.assertIn(today, captured_params[0])
 
 
 # ---------------------------------------------------------------------------

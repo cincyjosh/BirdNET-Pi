@@ -67,7 +67,7 @@ def get_connection(path: str):
 
 def get_todays_count(conn):
     today = datetime.now().strftime("%Y-%m-%d")
-    return pd.read_sql(f"SELECT COUNT(*) FROM detections WHERE Date = DATE('{today}')", con=conn)
+    return pd.read_sql("SELECT COUNT(*) FROM detections WHERE Date = DATE(?)", con=conn, params=[today])
 
 
 @st.cache_data(ttl=300)

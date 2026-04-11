@@ -89,7 +89,7 @@ class TestShellCommandInjection(unittest.TestCase):
         """
         malicious = f"{self.target_file}; touch {self.side_effect_file}"
         cmd = build_rm_cmd_unsafe(malicious)
-        subprocess.run(cmd, shell=True, capture_output=True)
+        subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: documents the injection bug
         self.assertTrue(
             os.path.exists(self.side_effect_file),
             "Injected command should have created side-effect file (documents the bug)"
@@ -102,7 +102,7 @@ class TestShellCommandInjection(unittest.TestCase):
         """
         malicious = f"{self.target_file}; touch {self.side_effect_file}"
         cmd = build_rm_cmd_safe(malicious)
-        subprocess.run(cmd, shell=True, capture_output=True)
+        subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: proves injection is blocked
         self.assertFalse(
             os.path.exists(self.side_effect_file),
             "Injection should be blocked — side-effect file must not exist"
@@ -111,7 +111,7 @@ class TestShellCommandInjection(unittest.TestCase):
     def test_legitimate_delete_still_works(self):
         """Escaping doesn't break normal filenames."""
         cmd = build_rm_cmd_safe(self.target_file)
-        result = subprocess.run(cmd, shell=True, capture_output=True)
+        result = subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: safe command, proves legitimate delete works
         self.assertFalse(os.path.exists(self.target_file), "Legitimate file should be deleted")
 
     def test_filename_with_spaces_works_safely(self):
@@ -119,7 +119,7 @@ class TestShellCommandInjection(unittest.TestCase):
         spaced = os.path.join(self.tmpdir, "my bird.wav")
         open(spaced, "w").close()
         cmd = build_rm_cmd_safe(spaced)
-        subprocess.run(cmd, shell=True, capture_output=True)
+        subprocess.run(cmd, shell=True, capture_output=True)  # nosec B602 - intentional: proves spaces in filenames work safely
         self.assertFalse(os.path.exists(spaced), "File with spaces should be deleted safely")
 
 
