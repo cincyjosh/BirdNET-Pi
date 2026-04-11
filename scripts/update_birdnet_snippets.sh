@@ -16,15 +16,15 @@ my_dir=$HOME/BirdNET-Pi/scripts
 source "$my_dir/install_helpers.sh"
 
 # Sets proper permissions and ownership
-find $HOME/Bird* -type f ! -perm -g+wr -exec chmod g+wr {} + 2>/dev/null
+find $HOME/Bird* -type f ! -perm -g+wr -exec sudo -u $USER chmod g+wr {} + 2>/dev/null
 find $HOME/Bird* -not -user $USER -execdir sudo -E chown $USER:$USER {} \+
-chmod 666 ~/BirdNET-Pi/scripts/*.txt
-chmod 666 ~/BirdNET-Pi/*.txt
-find $HOME/BirdNET-Pi -path "$HOME/BirdNET-Pi/birdnet" -prune -o -type f ! -perm /g=w -exec chmod g+w {} \;
-chmod g+r $HOME
+sudo -u $USER chmod 666 $HOME/BirdNET-Pi/scripts/*.txt
+sudo -u $USER chmod 666 $HOME/BirdNET-Pi/*.txt
+find $HOME/BirdNET-Pi -path "$HOME/BirdNET-Pi/birdnet" -prune -o -type f ! -perm /g=w -exec sudo -u $USER chmod g+w {} \;
+sudo -u $USER chmod g+r $HOME
 
 # remove world-writable perms
-chmod -R o-w ~/BirdNET-Pi/templates/*
+sudo -u $USER chmod -R o-w $HOME/BirdNET-Pi/templates/*
 
 APT_UPDATED=0
 PIP_UPDATED=0
