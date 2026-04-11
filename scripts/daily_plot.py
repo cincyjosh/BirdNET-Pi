@@ -54,6 +54,25 @@ def show_values_on_bars(ax, label):
         ax.text(x, y, value, bbox=bbox, ha='center', va='center', size=9, color=color)
 
 
+def _plot_palette(conf, is_top, norm, confmax):
+    """Return (pal, colors, plot_type, name) based on color scheme and top/bottom selection."""
+    if is_top or is_top is None:
+        if conf['COLOR_SCHEME'] == "dark":
+            pal = "Greys"
+            colors = plt.cm.Greys(norm(confmax)).tolist()
+        else:
+            pal = "Greens"
+            colors = plt.cm.Greens(norm(confmax)).tolist()
+        plot_type = "Top" if is_top else "All"
+        name = "Combo"
+    else:
+        pal = "Reds"
+        colors = plt.cm.Reds(norm(confmax)).tolist()
+        plot_type = "Bottom"
+        name = "Combo2"
+    return pal, colors, plot_type, name
+
+
 def wrap_width(txt):
     # try to estimate wrap width
     w = 16
@@ -99,25 +118,7 @@ def create_plot(df_plt_today, now, is_top=None):
 
     # norm values for color palette
     norm = plt.Normalize(confmax.values.min(), confmax.values.max())
-    if is_top or is_top is None:
-        # Set Palette for graphics
-        if conf['COLOR_SCHEME'] == "dark":
-            pal = "Greys"
-            colors = plt.cm.Greys(norm(confmax)).tolist()
-        else:
-            pal = "Greens"
-            colors = plt.cm.Greens(norm(confmax)).tolist()
-        if is_top:
-            plot_type = "Top"
-        else:
-            plot_type = 'All'
-        name = "Combo"
-    else:
-        # Set Palette for graphics
-        pal = "Reds"
-        colors = plt.cm.Reds(norm(confmax)).tolist()
-        plot_type = "Bottom"
-        name = "Combo2"
+    pal, colors, plot_type, name = _plot_palette(conf, is_top, norm, confmax)
 
     # Generate frequency plot
     plot = sns.countplot(y='Sci_Name', hue='Sci_Name', legend=False, data=df_plt_selection_today,

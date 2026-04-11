@@ -44,6 +44,31 @@ def notify(body, title, attached=""):
         )
 
 
+def _notify_each_detection(settings_dict, render_fn, body, title, image_url, com_name):
+    if settings_dict.get('APPRISE_NOTIFY_EACH_DETECTION') == "1":
+        reason = "detection"
+        notify(render_fn(body, reason), render_fn(title, reason), image_url)
+        species_last_notified[com_name] = int(time.time())
+
+
+def _notify_new_species_today(settings_dict, sci_name, render_fn, body, title, image_url, com_name):
+    if settings_dict.get('APPRISE_NOTIFY_NEW_SPECIES_EACH_DAY') == "1":
+        count = get_todays_count_for(sci_name)
+        if 0 < count <= 1:  # Notifies on first detection of the day only
+            reason = "first time today"
+            notify(render_fn(body, reason), render_fn(title, reason), image_url)
+            species_last_notified[com_name] = int(time.time())
+
+
+def _notify_rare_species(settings_dict, sci_name, render_fn, body, title, image_url, com_name):
+    if settings_dict.get('APPRISE_NOTIFY_NEW_SPECIES') == "1":
+        count = get_this_weeks_count_for(sci_name)
+        if 0 < count <= 5:
+            reason = f"only seen {count} times in last 7d"
+            notify(render_fn(body, reason), render_fn(title, reason), image_url)
+            species_last_notified[com_name] = int(time.time())
+
+
 def sendAppriseNotifications(sci_name, com_name, confidence, confidencepct, path, date, time_of_day, week, latitude, longitude, cutoff, sens, overlap):
     def render_template(template, reason=""):
         ret = template.replace("$sciname", sci_name) \
@@ -91,31 +116,22 @@ def sendAppriseNotifications(sci_name, com_name, confidence, confidencepct, path
                 print("IMAGE API ERROR:", e)
         image_url = images.get(com_name, "")
 
-    if settings_dict.get('APPRISE_NOTIFY_EACH_DETECTION') == "1":
-        reason = "detection"
-        notify_body = render_template(body, reason)
-        notify_title = render_template(title, reason)
-        notify(notify_body, notify_title, image_url)
-        species_last_notified[com_name] = int(time.time())
+    _notify_each_detection(settings_dict, render_template, body, title, image_url, com_name)
+    _notify_new_species_today(settings_dict, sci_name, render_template, body, title, image_url, com_name)
+    _notify_rare_species(settings_dict, sci_name, render_template, body, title, image_url, com_name)
 
-    APPRISE_NOTIFICATION_NEW_SPECIES_DAILY_COUNT_LIMIT = 1  # Notifies the first N per day.
-    if settings_dict.get('APPRISE_NOTIFY_NEW_SPECIES_EACH_DAY') == "1":
-        numberDetections = get_todays_count_for(sci_name)
-        if 0 < numberDetections <= APPRISE_NOTIFICATION_NEW_SPECIES_DAILY_COUNT_LIMIT:
-            reason = "first time today"
-            notify_body = render_template(body, reason)
-            notify_title = render_template(title, reason)
-            notify(notify_body, notify_title, image_url)
-            species_last_notified[com_name] = int(time.time())
 
-    if settings_dict.get('APPRISE_NOTIFY_NEW_SPECIES') == "1":
-        numberDetections = get_this_weeks_count_for(sci_name)
-        if 0 < numberDetections <= 5:
-            reason = f"only seen {numberDetections} times in last 7d"
-            notify_body = render_template(body, reason)
-            notify_title = render_template(title, reason)
-            notify(notify_body, notify_title, image_url)
-            species_last_notified[com_name] = int(time.time())
+def _is_throttled(com_name, min_secs_str):
+    """Return True if this species was notified too recently to notify again."""
+    if min_secs_str == "0":
+        return False
+    if species_last_notified.get(com_name) is None:
+        return False
+    try:
+        return int(time.time()) - species_last_notified[com_name] < int(min_secs_str)
+    except Exception as e:
+        print("APPRISE NOTIFICATION EXCEPTION: " + str(e))
+        return True
 
 
 def should_notify(com_name):
@@ -137,16 +153,9 @@ def should_notify(com_name):
         if com_name.lower().replace(" ", "") not in included_species:
             return False
 
-    # is it still too soon?
-    APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES = settings_dict.get('APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES')
-    if APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES != "0":
-        if species_last_notified.get(com_name) is not None:
-            try:
-                if int(time.time()) - species_last_notified[com_name] < int(APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES):
-                    return False
-            except Exception as e:
-                print("APPRISE NOTIFICATION EXCEPTION: " + str(e))
-                return False
+    min_secs = settings_dict.get('APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES')
+    if _is_throttled(com_name, min_secs):
+        return False
 
     return True
 

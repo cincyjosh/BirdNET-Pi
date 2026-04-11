@@ -87,6 +87,26 @@ def analyzeAudioData(chunks, overlap, lat, lon, week):
     return labeled, predicted_species_list
 
 
+def _build_human_mask(predictions, human_cutoff):
+    mask = [False] * len(predictions)
+    for i, prediction in enumerate(predictions):
+        for p in prediction[:human_cutoff]:
+            if 'Human' in p[0]:
+                mask[i] = True
+                break
+    return mask
+
+
+def _build_neighbour_mask(human_mask):
+    neighbour_mask = [False] * len(human_mask)
+    for i in range(len(human_mask)):
+        if i != 0 and human_mask[i - 1]:
+            neighbour_mask[i] = True
+        if i != len(human_mask) - 1 and human_mask[i + 1]:
+            neighbour_mask[i] = True
+    return neighbour_mask
+
+
 def filter_humans(predictions):
     conf = get_settings()
     priv_thresh = conf.getfloat('PRIVACY_THRESHOLD')
@@ -99,21 +119,8 @@ def filter_humans(predictions):
     except ValueError:
         pass
 
-    # mask for humans
-    human_mask = [False] * len(predictions)
-    for i, prediction in enumerate(predictions):
-        for p in prediction[:human_cutoff]:
-            if 'Human' in p[0]:
-                human_mask[i] = True
-                break
-
-    # mask for predictions that have a human neighbour
-    human_neighbour_mask = [False] * len(predictions)
-    for i, _ in enumerate(human_mask):
-        if i != 0 and human_mask[i - 1]:
-            human_neighbour_mask[i] = True
-        if i != len(human_mask) - 1 and human_mask[i + 1]:
-            human_neighbour_mask[i] = True
+    human_mask = _build_human_mask(predictions, human_cutoff)
+    human_neighbour_mask = _build_neighbour_mask(human_mask)
 
     clean_detections = []
     for prediction, human, has_human_neighbour in zip(predictions, human_mask, human_neighbour_mask):

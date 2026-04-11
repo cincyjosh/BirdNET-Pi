@@ -78,21 +78,29 @@ def measure_all_languages():
         print(stat)
 
 
+def _fetch_wikipedia_json(url, headers, failed, language, sci_name):
+    """Fetch Wikipedia API JSON with one retry on failure. Returns parsed JSON or None."""
+    try:
+        return requests.get(url=url, headers=headers, timeout=10).json()
+    except Exception:
+        time.sleep(1)
+        try:
+            return requests.get(url=url, headers=headers, timeout=10).json()
+        except Exception as e:
+            failed.append((language, sci_name, str(e)))
+            return None
+
+
 def scrape_wikipedia(sci_name, language, failed=None):
     if failed is None:
         failed = []
     url_sci_name = sci_name.replace(" ", "_")
     url = f"https://{language}.wikipedia.org/api/rest_v1/page/summary/{url_sci_name}"
     headers = {'Accept-Encoding': 'gzip', 'User-agent': 'BirdNET-Pi'}
-    try:
-        resp = requests.get(url=url, headers=headers, timeout=10).json()
-    except Exception:
-        time.sleep(1)
-        try:
-            resp = requests.get(url=url, headers=headers, timeout=10).json()
-        except Exception as e:
-            failed.append((language, sci_name, str(e)))
-            return
+
+    resp = _fetch_wikipedia_json(url, headers, failed, language, sci_name)
+    if resp is None:
+        return
 
     type = resp['type']
     if type == 'Internal error':

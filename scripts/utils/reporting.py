@@ -171,54 +171,63 @@ def apprise(file: ParseFileName, detections: [Detection]):
             species_apprised_this_run.append(detection.species)
 
 
+def _to_flac(file_name):
+    """Read an audio file and return FLAC-encoded bytes, or None on error."""
+    try:
+        data, samplerate = soundfile.read(file_name)
+        buf = io.BytesIO()
+        soundfile.write(buf, data, samplerate, format='FLAC')
+        return buf.getvalue()
+    except Exception as e:
+        log.error("Error during FLAC conversion: %s", e)
+        return None
+
+
 def bird_weather(file: ParseFileName, detections: [Detection]):
     conf = get_settings()
     if conf['BIRDWEATHER_ID'] == "":
         return
-    if detections:
+    if not detections:
+        return
+
+    flac_data = _to_flac(file.file_name)
+    if flac_data is None:
+        return
+
+    # POST soundscape to server
+    soundscape_url = (f'https://app.birdweather.com/api/v1/stations/'
+                      f'{conf["BIRDWEATHER_ID"]}/soundscapes?timestamp={file.iso8601}')
+
+    try:
+        response = requests.post(url=soundscape_url, data=flac_data, timeout=30,
+                                 headers={'Content-Type': 'audio/flac'})
+        log.info("Soundscape POST Response Status - %d", response.status_code)
+        sdata = response.json()
+    except Exception as e:
+        log.error("Cannot POST soundscape: %s", e)
+        return
+    if not sdata.get('success'):
+        log.error(sdata.get('message'))
+        return
+    soundscape_id = sdata['soundscape']['id']
+
+    for detection in detections:
+        # POST detection to server
+        detection_url = f'https://app.birdweather.com/api/v1/stations/{conf["BIRDWEATHER_ID"]}/detections'
+
+        data = {'timestamp': detection.iso8601, 'lat': conf['LATITUDE'], 'lon': conf['LONGITUDE'],
+                'soundscapeId': soundscape_id,
+                'soundscapeStartTime': detection.start, 'soundscapeEndTime': detection.stop,
+                'commonName': detection.common_name, 'scientificName': detection.scientific_name,
+                'algorithm': '2p4' if conf['MODEL'] == 'BirdNET_GLOBAL_6K_V2.4_Model_FP16' else 'alpha',
+                'confidence': detection.confidence}
+
+        log.debug(data)
         try:
-            data, samplerate = soundfile.read(file.file_name)
-            buf = io.BytesIO()
-            soundfile.write(buf, data, samplerate, format='FLAC')
-            flac_data = buf.getvalue()
+            response = requests.post(detection_url, json=data, timeout=20)
+            log.info("Detection POST Response Status - %d", response.status_code)
         except Exception as e:
-            log.error("Error during FLAC conversion: %s", e)
-            return
-
-        # POST soundscape to server
-        soundscape_url = (f'https://app.birdweather.com/api/v1/stations/'
-                          f'{conf["BIRDWEATHER_ID"]}/soundscapes?timestamp={file.iso8601}')
-
-        try:
-            response = requests.post(url=soundscape_url, data=flac_data, timeout=30,
-                                     headers={'Content-Type': 'audio/flac'})
-            log.info("Soundscape POST Response Status - %d", response.status_code)
-            sdata = response.json()
-        except Exception as e:
-            log.error("Cannot POST soundscape: %s", e)
-            return
-        if not sdata.get('success'):
-            log.error(sdata.get('message'))
-            return
-        soundscape_id = sdata['soundscape']['id']
-
-        for detection in detections:
-            # POST detection to server
-            detection_url = f'https://app.birdweather.com/api/v1/stations/{conf["BIRDWEATHER_ID"]}/detections'
-
-            data = {'timestamp': detection.iso8601, 'lat': conf['LATITUDE'], 'lon': conf['LONGITUDE'],
-                    'soundscapeId': soundscape_id,
-                    'soundscapeStartTime': detection.start, 'soundscapeEndTime': detection.stop,
-                    'commonName': detection.common_name, 'scientificName': detection.scientific_name,
-                    'algorithm': '2p4' if conf['MODEL'] == 'BirdNET_GLOBAL_6K_V2.4_Model_FP16' else 'alpha',
-                    'confidence': detection.confidence}
-
-            log.debug(data)
-            try:
-                response = requests.post(detection_url, json=data, timeout=20)
-                log.info("Detection POST Response Status - %d", response.status_code)
-            except Exception as e:
-                log.error("Cannot POST detection: %s", e)
+            log.error("Cannot POST detection: %s", e)
 
 
 def heartbeat():

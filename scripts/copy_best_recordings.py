@@ -50,6 +50,14 @@ def common_name_to_dir(com_name: str) -> str:
     return com_name.replace("'", "").replace(" ", "_")
 
 
+def _dest_size_mb(dest_base: str) -> float:
+    total_bytes = 0
+    for dirpath, _, filenames in os.walk(dest_base):
+        for f in filenames:
+            total_bytes += os.path.getsize(os.path.join(dirpath, f))
+    return total_bytes / 1_048_576
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--dry-run", action="store_true", help="Print what would be copied without copying anything")
@@ -113,12 +121,8 @@ def main():
     print(f"Source file missing: {skipped_missing}")
 
     if not args.dry_run and os.path.isdir(DEST_BASE):
-        total_bytes = 0
-        for dirpath, _, filenames in os.walk(DEST_BASE):
-            for f in filenames:
-                total_bytes += os.path.getsize(os.path.join(dirpath, f))
         dest_root = os.path.dirname(DEST_BASE)
-        print(f"Output folder size:  {total_bytes / 1_048_576:.1f} MB  ({dest_root})")
+        print(f"Output folder size:  {_dest_size_mb(DEST_BASE):.1f} MB  ({dest_root})")
 
 
 if __name__ == "__main__":
