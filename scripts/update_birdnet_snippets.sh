@@ -63,6 +63,12 @@ ensure_python_package() {
   fi
 }
 
+version_below() {
+  # version_below current minimum → exits 0 (true in bash) if current < minimum
+  $HOME/BirdNET-Pi/birdnet/bin/python3 -c \
+    "from packaging.version import Version; exit(0 if Version('$1') < Version('$2') else 1)"
+}
+
 # sed -i on /etc/birdnet/birdnet.conf overwites the symbolic link - restore the link
 if ! [ -L /etc/birdnet/birdnet.conf ] ; then
   sudo_with_user cp -f /etc/birdnet/birdnet.conf $HOME/BirdNET-Pi/
@@ -149,13 +155,13 @@ fi
 apprise_version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import apprise; print(apprise.__version__)")
 [[ $apprise_version != "1.9.5" ]] && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install apprise==1.9.5
 version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import streamlit; print(streamlit.__version__)")
-[[ $version != "1.44.0" ]] && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install streamlit==1.44.0
+version_below "$version" "1.45.0" && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install 'streamlit>=1.45.0'
 version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import seaborn; print(seaborn.__version__)")
 [[ $version != "0.13.2" ]] && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install seaborn==0.13.2
 version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import suntime; print(suntime.__version__)")
 [[ $version != "1.3.2" ]] && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install suntime==1.3.2
 version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import pyarrow; print(pyarrow.__version__)")
-[[ $version != "20.0.0" ]] && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install pyarrow==20.0.0
+version_below "$version" "19.0.1" && sudo_with_user $HOME/BirdNET-Pi/birdnet/bin/pip3 install 'pyarrow>=19.0.1'
 
 PY_VERSION=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import sys; print(f'{sys.version_info[0]}{sys.version_info[1]}')")
 tf_version=$($HOME/BirdNET-Pi/birdnet/bin/python3 -c "import tflite_runtime; print(tflite_runtime.__version__)")
