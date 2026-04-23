@@ -6,11 +6,14 @@
 # SET VARIABLES #
 #################
 
-# Define HOME in case environment is not correctly set
-HOME="${HOME:-/home/pi}"
-
 # shellcheck disable=sc1091
 source /etc/birdnet/birdnet.conf &>/dev/null
+
+# Resolve HOME from the birdnet user so this script works when run as root via sudo
+if [ -n "$BIRDNET_USER" ]; then
+  HOME="$(getent passwd "$BIRDNET_USER" | cut -d: -f6)"
+fi
+HOME="${HOME:-/home/pi}"
 
 # Get arguments
 OLDNAME="$1" #OLDNAME="Mésange_charbonnière-78-2024-05-02-birdnet-RTSP_1-18:14:08.mp3"

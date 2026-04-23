@@ -89,7 +89,7 @@ if(isset($_GET['changefile']) && isset($_GET['newname'])) {
     die();
   }
   $newname = urldecode($_GET['newname']);
-  if (!exec("sudo -u " . escapeshellarg($user) . " " . escapeshellarg($home . "/BirdNET-Pi/scripts/birdnet_changeidentification.sh") . " " . escapeshellarg($oldname) . " " . escapeshellarg($newname) . " log_errors 2>&1", $output)) {
+  if (!exec("sudo /usr/local/bin/birdnet_changeidentification.sh " . escapeshellarg($oldname) . " " . escapeshellarg($newname) . " log_errors 2>&1", $output)) {
     echo "OK";
   } else {
     echo "Error : " . implode(", ", $output) . "<br>";
