@@ -464,7 +464,7 @@ else:
     readings = top_N
 
     plt_topN_today = (df6['Com_Name'].value_counts()[:readings])
-    freq_order = pd.value_counts(df6['Com_Name']).iloc[:readings].index
+    freq_order = df6['Com_Name'].value_counts().iloc[:readings].index
     fig.add_trace(go.Bar(y=plt_topN_today.index.tolist(), x=plt_topN_today.values.tolist(), marker_color='seagreen', orientation='h'), row=1,
                   col=1)
 
