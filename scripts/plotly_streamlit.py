@@ -469,7 +469,8 @@ else:
                   col=1)
 
     df6['Hour of Day'] = [r.hour for r in df6.index.time]
-    heat = pd.crosstab(df6['Com_Name'], df6['Hour of Day'])
+    heat = pd.crosstab(df6['Com_Name'].to_numpy(), df6['Hour of Day'].to_numpy(),
+                       rownames=['Com_Name'], colnames=['Hour of Day'])
     # Order heatmap Birds by frequency of occurrance
     heat.index = pd.CategoricalIndex(heat.index, categories=freq_order)
     heat.sort_index(level=0, inplace=True)
