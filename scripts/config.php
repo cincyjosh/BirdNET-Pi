@@ -25,7 +25,7 @@ if (file_exists($home."/BirdNET-Pi/body.txt")) {
 
 function syslog_shell_exec($cmd, $sudo_user = null) {
   if ($sudo_user) {
-    $cmd = "sudo -u $sudo_user $cmd";
+    $cmd = "sudo -u " . escapeshellarg($sudo_user) . " $cmd";
   }
   $output = shell_exec($cmd);
 
