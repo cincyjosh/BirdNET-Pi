@@ -33,9 +33,9 @@ $pipe="/tmp/bird_pipe";
 $log="$home/BirdSongs/restore.log";
 
 if (!$chunks || $chunk == 0) {
-    exec("sudo -u $user ps xf | grep -v grep | grep 'BirdNET-Pi/scripts/backup_data.sh -a restore -f -' | awk '{ print $1 }'", $ProcessIDs);
+    exec("sudo -u " . escapeshellarg($user) . " ps xf | grep -v grep | grep 'BirdNET-Pi/scripts/backup_data.sh -a restore -f -' | awk '{ print $1 }'", $ProcessIDs);
     foreach ($ProcessIDs as $pid) {
-        exec("sudo -u $user kill -9 $pid");
+        exec("sudo -u " . escapeshellarg($user) . " kill -9 " . escapeshellarg($pid));
     }
     if(file_exists($pipe)){
         unlink($pipe);
