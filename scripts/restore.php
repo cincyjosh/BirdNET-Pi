@@ -48,7 +48,7 @@ if (!$chunks || $chunk == 0) {
         die('{"jsonrpc" : "2.0", "error" : {"code": 100, "message": "Failed to open temp directory."}, "id" : "id"}');
     }
     $read_chunks = ($chunks > 0) ? $chunks : 1;
-    $pID = shell_exec("nohup $home/BirdNET-Pi/scripts/read_chunks.sh -n $read_chunks -f $pipe | sudo -u $user $home/BirdNET-Pi/scripts/backup_data.sh -a restore -f - > $log 2>&1 & echo $!");
+    $pID = shell_exec("nohup " . escapeshellarg($home) . "/BirdNET-Pi/scripts/read_chunks.sh -n " . escapeshellarg($read_chunks) . " -f " . escapeshellarg($pipe) . " | sudo -u " . escapeshellarg($user) . " " . escapeshellarg($home) . "/BirdNET-Pi/scripts/backup_data.sh -a restore -f - > " . escapeshellarg($log) . " 2>&1 & echo $!");
     $_SESSION['pID'] = $pID;
 }
 
@@ -87,7 +87,7 @@ if (!$chunks || $chunk == $chunks - 1) {
     $i = 0;
     while ($i < 100 && count($ProcessState) >= 2) {
         unset($ProcessState);
-        exec("ps $pID", $ProcessState);
+        exec("ps " . escapeshellarg($pID), $ProcessState);
         $i++;
         usleep(200000);
     }
