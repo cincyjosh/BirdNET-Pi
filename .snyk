@@ -1,0 +1,42 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  e6842bfe.4773f344.b6cad12c.2015d42e.ef9f7d82.b8f3855a.cd61fc56.cde67692.a9b581c2.4773f344.c9330245.08906714.66a1886e.114273fb.83265159.c191d455:
+    - '*':
+        reason: >-
+          False positive: fetch() downloads audio from same-origin BirdNET-Pi
+          server for download button. No script execution path.
+        expires: 2999-12-31T23:59:59.000Z
+        created: 2026-05-17T18:45:53.653Z
+  efb3a528.464a7316.fd02baaa.a43afb60.a6b3be91.c8ccaa05.1bb84fcb.f43a205f.e148605e.c55d47e1.fd02baaa.de2ca2f0.62d855b0.cae4d672.1bb84fcb.f43a205f:
+    - '*':
+        reason: >-
+          False positive: $_GET['submit'] is validated against a hardcoded
+          allowedCommands array before shell_exec. No arbitrary input can
+          execute.
+        expires: 2999-12-31T23:59:59.000Z
+        created: 2026-05-17T18:45:57.354Z
+  276ab48f.464a7316.336ef1df.d4a47fbb.a6b3be91.c8ccaa05.03d204b9.f43a205f.6365d263.cb163bd1.f45c4e07.d4a47fbb.62d855b0.ca2c3fb0.2174662d.f43a205f:
+    - '*':
+        reason: >-
+          False positive: $url validated with strncmp https:// check and
+          FILTER_VALIDATE_URL before file_get_contents. File paths cannot pass
+          URL validation.
+        expires: 2999-12-31T23:59:59.000Z
+        created: 2026-05-17T18:45:59.876Z
+patch: {}
+exclude:
+  global:
+    - scripts/adminer.php:
+        reason: 'Vendor code: Adminer 4.8.1 third-party DB admin tool'
+        created: 2026-05-17T18:46:12.044Z
+    - scripts/adminer-de.php:
+        reason: 'Vendor code: Adminer 4.8.1 third-party DB admin tool'
+        created: 2026-05-17T18:46:14.813Z
+    - scripts/adminer-fr.php:
+        reason: 'Vendor code: Adminer 4.8.1 third-party DB admin tool'
+        created: 2026-05-17T18:46:17.820Z
+    - scripts/filemanager:
+        reason: 'Vendor code: RoxyFileman third-party file manager'
+        created: 2026-05-17T18:46:20.806Z
