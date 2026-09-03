@@ -185,8 +185,7 @@ if(isset($_GET["latitude"])){
     sleep(5);
   }
 
-  $fh = fopen("/etc/birdnet/birdnet.conf", "w");
-  fwrite($fh, $contents);
+  write_birdnet_config($contents);
 
   if(isset($apprise_input)){
     $appriseconfig = fopen($home."/BirdNET-Pi/apprise.txt", "w");

@@ -116,6 +116,42 @@ function sanitize_conf_value($value) {
   return $value;
 }
 
+function write_birdnet_config($contents) {
+  $config_path = '/etc/birdnet/birdnet.conf';
+  $target_path = realpath($config_path);
+  if ($target_path === false || !is_file($target_path)) {
+    throw new RuntimeException('BirdNET-Pi configuration file not found');
+  }
+
+  $lock = fopen($target_path . '.lock', 'c');
+  if ($lock === false || !flock($lock, LOCK_EX)) {
+    if (is_resource($lock)) fclose($lock);
+    throw new RuntimeException('Unable to lock BirdNET-Pi configuration');
+  }
+
+  $tmp_path = tempnam(dirname($target_path), basename($target_path) . '.tmp.');
+  if ($tmp_path === false) {
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    throw new RuntimeException('Unable to create temporary configuration file');
+  }
+
+  try {
+    $mode = fileperms($target_path) & 0777;
+    if (file_put_contents($tmp_path, $contents, LOCK_EX) !== strlen($contents)) {
+      throw new RuntimeException('Unable to write temporary configuration file');
+    }
+    chmod($tmp_path, $mode);
+    if (!rename($tmp_path, $target_path)) {
+      throw new RuntimeException('Unable to replace BirdNET-Pi configuration file');
+    }
+  } finally {
+    if (file_exists($tmp_path)) unlink($tmp_path);
+    flock($lock, LOCK_UN);
+    fclose($lock);
+  }
+}
+
 function debug_log($message) {
   if (is_bool($message)) {
     $message = $message ? 'true' : 'false';

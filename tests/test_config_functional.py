@@ -19,6 +19,27 @@ import scripts.utils.helpers as helpers_module  # noqa: E402
 from scripts.utils.helpers import _load_settings  # noqa: E402
 
 
+class TestAtomicConfigWrite(unittest.TestCase):
+
+    def test_config_writers_use_shared_atomic_helper(self):
+        paths = [
+            os.path.join(os.path.dirname(__file__), '..', 'scripts', 'common.php'),
+            os.path.join(os.path.dirname(__file__), '..', 'scripts', 'config.php'),
+            os.path.join(os.path.dirname(__file__), '..', 'scripts', 'advanced.php'),
+            os.path.join(os.path.dirname(__file__), '..', 'scripts', 'spectrogram.php'),
+        ]
+        for path in paths:
+            with open(path) as source:
+                contents = source.read()
+            if path.endswith('common.php'):
+                self.assertIn('function write_birdnet_config($contents)', contents)
+            else:
+                self.assertNotIn('fopen("/etc/birdnet/birdnet.conf", "w")', contents)
+                self.assertNotIn("fopen('/etc/birdnet/birdnet.conf', \"w\")", contents)
+                self.assertIn('write_birdnet_config($contents);', contents)
+
+
+
 FULL_CONF = """\
 RECS_DIR="/home/pi/BirdSongs"
 EXTRACTED="/home/pi/BirdSongs/Extracted"

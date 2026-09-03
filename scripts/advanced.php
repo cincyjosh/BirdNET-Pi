@@ -272,8 +272,7 @@ if (isset($_GET["max_files_species"])) {
 
   //Finally write the data out. some sections do this themselves in order to have the new settings ready for the services that will be restarted
   //but will doubly ensure the settings are saved after any modification
-  $fh = fopen('/etc/birdnet/birdnet.conf', "w");
-  fwrite($fh, $contents);
+  write_birdnet_config($contents);
   $config = get_config($force_reload=true);
 
   syslog(LOG_INFO, "Restarting Services");
