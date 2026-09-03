@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+import unicodedata
 
 from tzlocal import get_localzone
 
@@ -19,7 +20,13 @@ class Detection:
         self.species = scientific_name
         self.scientific_name = scientific_name
         self.common_name = common_name
-        self.common_name_safe = self.common_name.replace("'", "").replace(" ", "_")
+        # This value is used as both a directory and filename component.
+        # Keep it portable and, importantly, never allow path separators or
+        # dot components from translated/model-provided names.
+        safe_name = unicodedata.normalize('NFKC', self.common_name).replace("'", "")
+        safe_name = re.sub(r'[^\w-]+', '_', safe_name, flags=re.UNICODE)
+        safe_name = re.sub(r'_+', '_', safe_name).strip('._-')[:128]
+        self.common_name_safe = safe_name or 'Unknown_Species'
         self.file_name_extr = None
 
     def __str__(self):
