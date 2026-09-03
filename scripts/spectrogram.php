@@ -422,8 +422,7 @@ h1 {
 				if (array_key_exists($config['RTSP_STREAM_TO_LIVESTREAM'], $RTSP_Stream_Config) === false) {
 					$contents = file_get_contents('/etc/birdnet/birdnet.conf');
 					$contents = preg_replace("/RTSP_STREAM_TO_LIVESTREAM=.*/", "RTSP_STREAM_TO_LIVESTREAM=\"0\"", $contents);
-					$fh = fopen("/etc/birdnet/birdnet.conf", "w");
-					fwrite($fh, $contents);
+					write_birdnet_config($contents);
 					get_config($force_reload=true);
 					exec("sudo systemctl restart livestream.service");
 				}
