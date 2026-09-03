@@ -78,6 +78,16 @@ def extract_detection(file: ParseFileName, detection: Detection):
     new_file_name = f'{detection.common_name_safe}-{detection.confidence_pct}-{detection.date}-birdnet-{file.RTSP_id}{detection.time}.{conf["AUDIOFMT"]}'
     new_dir = os.path.join(conf['EXTRACTED'], 'By_Date', f'{detection.date}', f'{detection.common_name_safe}')
     new_file = os.path.join(new_dir, new_file_name)
+
+    # Defense in depth: generated names must never escape the extraction root,
+    # even if configuration or model labels are malformed.
+    extraction_root = os.path.realpath(os.path.join(conf['EXTRACTED'], 'By_Date'))
+    candidate_dir = os.path.realpath(new_dir)
+    candidate_file = os.path.realpath(new_file)
+    if (os.path.commonpath((extraction_root, candidate_dir)) != extraction_root or
+            os.path.commonpath((extraction_root, candidate_file)) != extraction_root):
+        raise ValueError(f'Unsafe extraction path: {new_file}')
+
     if os.path.isfile(new_file):
         log.warning('Extraction exists. Moving on: %s', new_file)
     else:
