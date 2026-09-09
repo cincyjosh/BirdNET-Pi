@@ -74,6 +74,18 @@ class TestDetectionInit(unittest.TestCase):
         d = self._make(common="Steller's Jay")
         self.assertEqual(d.common_name_safe, 'Stellers_Jay')
 
+    def test_common_name_safe_blocks_path_components(self):
+        d = self._make(common='../Bad/Bird\\\\Name')
+        self.assertEqual(d.common_name_safe, 'Bad_Bird_Name')
+
+    def test_common_name_safe_falls_back_for_non_filename_input(self):
+        d = self._make(common='../../')
+        self.assertEqual(d.common_name_safe, 'Unknown_Species')
+
+    def test_common_name_safe_limits_length(self):
+        d = self._make(common='A' * 200)
+        self.assertEqual(len(d.common_name_safe), 128)
+
     def test_file_name_extr_initially_none(self):
         d = self._make()
         self.assertIsNone(d.file_name_extr)

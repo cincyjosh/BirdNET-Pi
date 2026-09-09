@@ -9,6 +9,7 @@ from scripts.utils.analysis import run_analysis, splitSignal
 from scripts.utils.classes import ParseFileName
 from tests.helpers import TESTDATA, Settings
 from scripts.utils.analysis import filter_humans
+from scripts.utils.reporting import extract_detection
 
 
 def _load_audio_chunks(path, overlap, sample_rate, chunk_duration):
@@ -205,6 +206,29 @@ class TestFilterHumans(unittest.TestCase):
 
         # Assertions
         self.assertEqual(result, expected)
+
+
+class TestExtractionPath(unittest.TestCase):
+
+    @patch('scripts.utils.reporting.get_settings')
+    @patch('scripts.utils.reporting.extract_safe')
+    @patch('scripts.utils.reporting.spectrogram')
+    def test_generated_path_stays_under_extraction_root(self, mock_spectrogram, mock_extract_safe, mock_settings):
+        import tempfile
+        from scripts.utils.classes import Detection
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mock_settings.return_value = Settings.with_defaults() | {
+                'EXTRACTED': tmpdir,
+                'AUDIOFMT': 'mp3',
+                'RAW_SPECTROGRAM': 0,
+            }
+            source = ParseFileName('/tmp/2024-06-15-birdnet-07:30:00.wav')
+            detection = Detection(source.file_date, 0, 3, 'Test species', '../Bad/Bird', 0.9)
+            result = extract_detection(source, detection)
+            self.assertEqual(os.path.commonpath((os.path.realpath(tmpdir + '/By_Date'), os.path.realpath(result))),
+                             os.path.realpath(tmpdir + '/By_Date'))
+            self.assertIn('Bad_Bird', result)
 
 
 if __name__ == '__main__':
